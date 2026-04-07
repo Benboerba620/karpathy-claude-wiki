@@ -119,43 +119,90 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 - `.karpathy-tmp/wiki/` → 用户选择的路径(默认 `./wiki/`)
 - `.karpathy-tmp/scripts/wiki_index.py` → `./scripts/wiki_index.py`(如果 `scripts/` 不存在则创建)
 
-完成后删除 `.karpathy-tmp/`。
+⚠️ **此时不要删 `.karpathy-tmp/`**——阶段 4 还需要从 `.karpathy-tmp/CLAUDE.md` 读取协议内容。清理放到阶段 6 最后做。
 
 ### 阶段 3 — 根据用户领域定制
 
-打开 `wiki/_schema.md`,根据领域应用对应的修改:
+> ⚠️ **如果用户选了 `investing`,跳过整个阶段 3**——模板默认就是 investing 领域,不需要任何修改。
 
-| 领域 | 修改 |
-|---|---|
-| `investing` | 保持原样。`entities/` = 公司,`concepts/` = 主题/框架。 |
-| `research` | 把 `entities/` 改名为 `subjects/`。简化 `rules.md`,只保留"已验证的模式"。 |
-| `reading` | 把 `entities/` 改名为 `authors/`,`concepts/` 改名为 `themes/`。删掉 `decisions/`。 |
-| `writing` | 把 `entities/` 改名为 `references/`,`concepts/` 改名为 `topics/`。删掉 `rules.md`。 |
-| `mixed` | 保留 `entities/`,根据需要并列添加其他目录。 |
+如果是其他领域,按以下三步走:
 
-改名后,在 `_schema.md` 和 `CLAUDE.md` 里做一次全局搜索替换,修正所有引用。
+**3.1 — 重命名 entity 文件夹**
+
+```bash
+mv wiki/entities wiki/<新名称>
+```
+
+| 领域 | 新文件夹名 | 配套术语 |
+|---|---|---|
+| `research` | `subjects/` | `entity` → `subject` |
+| `reading` | `authors/` | `entity` → `author`(可选删 `decisions/`) |
+| `writing` | `references/` | `entity` → `reference`(可选删 `rules.md`) |
+| `mixed` | (保留 `entities/`,按需添加 sibling 目录) | — |
+
+**3.2 — 用词边界 find-replace 修正引用**
+
+在两个文件里替换:
+- `wiki/_schema.md`
+- `.karpathy-tmp/CLAUDE.md`(注意:是模板的 CLAUDE.md,**不是**用户项目根目录的 CLAUDE.md)
+
+⚠️ **必须用词边界正则**(例如 `\bentities\b` → `\bsubjects\b`),否则单数 `entity` 和复数 `entities` 会被同时改坏,造成"`entity` 页面应该列出它的 `subjects`"这种语义裂开的句子。
+
+**3.3 — 同步更新模板的 frontmatter**
+
+打开 `wiki/<新名称>/_template/profile.md`,替换以下硬编码字段:
+- `type: entity` → `type: <新单数>`(例如 `subject`)
+- `domain: [investing]` → `domain: [<用户领域>]`
+- `judgment: watching/bullish/bearish/neutral` 是投资字段,不合适就改成更通用的词,或保留 `watching` 当占位
+
+> 💡 `rules.md` 和 `false-beliefs.md` 里的示例(P/E ratio、supply chain)是 investing 风格的占位内容。本协议不自动重写它们——告诉用户这些是示例,首次 ingest 后自行替换即可。
 
 ### 阶段 4 — 整合 `CLAUDE.md`
 
-- **如果用户已经有 `CLAUDE.md`**:把 `.karpathy-tmp/CLAUDE.md` 的内容追加到一个新章节 `## Wiki Protocols (from karpathy-claude-wiki)` 下面。告诉用户你追加了哪些内容。
-- **如果用户没有 `CLAUDE.md`**:把 `.karpathy-tmp/CLAUDE.md` 复制到用户项目的根目录。
+**情况 A:用户没有 `CLAUDE.md`** —— 直接 `cp .karpathy-tmp/CLAUDE.md ./CLAUDE.md`,完成。
+
+**情况 B:用户已经有 `CLAUDE.md`** —— 追加,但必须做两件事:
+
+1. **裁掉模板的 standalone 引言**。`.karpathy-tmp/CLAUDE.md` 开头有 "If you're a human reading this for the first time..." 这种适合独立文件的导言。append 时只从 `## Protocol 1 — Ingest` 开始,前面的所有行全部跳过,否则用户文件里会出现尴尬的内嵌旁白。
+
+2. **把所有标题级别下移一级**,让追加的内容嵌套在新的父章节下:`# CLAUDE.md — Wiki Protocols` 整行删除,`## Protocol N` → `### Protocol N`,`### Phase N` → `#### Phase N`,以此类推。否则用户文件会出现两个 H1 + 同级混乱的层级。
+
+追加格式:
+```markdown
+[用户原本的 CLAUDE.md 内容]
+
+## Wiki Protocols (from karpathy-claude-wiki)
+
+### Protocol 1 — Ingest
+[已下移层级的内容...]
+
+### Protocol 2 — Cross-Reference
+...
+```
+
+操作完明确告诉用户:你裁掉了什么、追加了什么、改了哪些标题层级。
 
 ### 阶段 5 — 创建第一个 entity
 
-使用阶段 1 第 4 题的示例 entity 名称,创建:
+使用阶段 1 第 4 题的示例 entity 名称。**路径取决于阶段 3 是否做了 rename**:
 
-```
-wiki/entities/<NAME>/profile.md
-```
+- 如果 `investing`(默认):用 `wiki/entities/<NAME>/profile.md` 和模板 `wiki/entities/_template/profile.md`
+- 如果做了 rename:用 `wiki/<新文件夹>/<NAME>/profile.md` 和模板 `wiki/<新文件夹>/_template/profile.md`
 
-用 `wiki/entities/_template/profile.md` 作为模板。填好基础 frontmatter(title、type、created 日期),正文部分留空,等用户填。
+复制模板到新位置,填好基础 frontmatter(title、created 日期、domain),正文部分留空。**不要替用户编造 thesis 内容**——那是用户的工作。
 
 ### 阶段 6 — 验证并交付
 
-1. 给用户展示新建的 `wiki/` 目录树。
-2. 确认 `CLAUDE.md` 整合成功(打印出相关章节)。
-3. 对用户说,原文如下:
-   > "Wiki 安装完成。要做第一次 ingest:把一个文件放进 `wiki/raw/<category>/`,然后说"按协议摄入这个"。第一次 ingest 会根据你的具体领域优化 schema。"
+1. **生成索引**:`python scripts/wiki_index.py`(无参数)。这一步会生成 `wiki/_index.json` 和 `wiki/overview.md`。**没有这两个文件,wiki 没有索引,后续的 lint/search 全都没法跑**。如果用户没装 python,告诉他们装好后再手动跑一次。
+
+2. **清理临时目录**:`rm -rf .karpathy-tmp`(阶段 2 推迟到现在做)。
+
+3. 给用户展示新建的 `wiki/` 目录树。
+
+4. 确认 `CLAUDE.md` 整合成功(打印出相关章节)。
+
+5. 对用户说,原文如下:
+   > "Wiki 安装完成。要做第一次 ingest:把一个文件放进 `wiki/raw/<category>/`(`<category>` 可选 `articles` / `papers` / `books` / `podcasts` / `conversations`),然后说"按协议摄入这个"。第一次 ingest 会根据你的具体领域优化 schema。"
 
 阶段 6 之后停止。不要预填内容。用户通过日常使用来填充 wiki。
 
@@ -339,43 +386,90 @@ Move:
 - `.karpathy-tmp/wiki/` → user's chosen path (default `./wiki/`)
 - `.karpathy-tmp/scripts/wiki_index.py` → `./scripts/wiki_index.py` (create `scripts/` if needed)
 
-Then delete `.karpathy-tmp/`.
+⚠️ **Do NOT delete `.karpathy-tmp/` yet** — Phase 4 still needs `.karpathy-tmp/CLAUDE.md`. Cleanup happens in Phase 6.
 
 ### Phase 3 — Customize for the user's domain
 
-Open `wiki/_schema.md` and apply the domain-specific edits:
+> ⚠️ **If the user picked `investing`, skip Phase 3 entirely** — the template ships with investing as the default and no customization is needed.
 
-| Domain | Edit |
-|---|---|
-| `investing` | Keep as-is. `entities/` = companies, `concepts/` = themes/frameworks. |
-| `research` | Rename `entities/` → `subjects/`. Simplify `rules.md` to just "validated patterns". |
-| `reading` | Rename `entities/` → `authors/`, `concepts/` → `themes/`. Drop `decisions/`. |
-| `writing` | Rename `entities/` → `references/`, `concepts/` → `topics/`. Drop `rules.md`. |
-| `mixed` | Keep `entities/` + add sibling dirs as needed. |
+For non-investing domains, do these three steps:
 
-After renaming, do a project-wide find-replace in `_schema.md` and `CLAUDE.md` to fix references.
+**3.1 — Rename the entity folder**
+
+```bash
+mv wiki/entities wiki/<new-name>
+```
+
+| Domain | New folder | Term hint |
+|---|---|---|
+| `research` | `subjects/` | `entity` → `subject` |
+| `reading` | `authors/` | `entity` → `author` (optionally drop `decisions/`) |
+| `writing` | `references/` | `entity` → `reference` (optionally drop `rules.md`) |
+| `mixed` | (keep `entities/`, add sibling dirs as needed) | — |
+
+**3.2 — Word-boundary find-replace**
+
+Apply to two files:
+- `wiki/_schema.md`
+- `.karpathy-tmp/CLAUDE.md` (the template's CLAUDE.md, **not** the user's project CLAUDE.md)
+
+⚠️ **You must use word-boundary regex** (e.g. `\bentities\b` → `\bsubjects\b`). A naive `s/entities/subjects/g` will leave the singular `entity` unchanged and produce broken sentences like "the `entity` page should list its connected `subjects`".
+
+**3.3 — Update the template's frontmatter**
+
+Open `wiki/<new-name>/_template/profile.md` and replace the hard-coded fields:
+- `type: entity` → `type: <new-singular>` (e.g. `subject`)
+- `domain: [investing]` → `domain: [<chosen-domain>]`
+- `judgment: watching/bullish/bearish/neutral` is investing-specific — replace with domain-appropriate values, or keep `watching` as a generic placeholder
+
+> 💡 `rules.md` and `false-beliefs.md` ship with investing-flavored examples (P/E ratios, supply chains). This protocol does **not** auto-rewrite them — tell the user they're placeholders and to replace them after the first real ingest.
 
 ### Phase 4 — Integrate `CLAUDE.md`
 
-- **If the user has an existing `CLAUDE.md`**: APPEND the contents of `.karpathy-tmp/CLAUDE.md` under a new section `## Wiki Protocols (from karpathy-claude-wiki)`. Tell the user what you appended.
-- **If the user has no `CLAUDE.md`**: Copy `.karpathy-tmp/CLAUDE.md` to the user's project root.
+**Case A: user has no `CLAUDE.md`** — just `cp .karpathy-tmp/CLAUDE.md ./CLAUDE.md`. Done.
+
+**Case B: user has an existing `CLAUDE.md`** — append, but with two transformations to avoid breaking the user's file:
+
+1. **Trim the template's standalone intro.** `.karpathy-tmp/CLAUDE.md` starts with a "If you're a human reading this for the first time..." preamble that makes sense for a standalone file but becomes awkward in-file narration when merged. Skip everything before `## Protocol 1 — Ingest` and only append from there.
+
+2. **Shift all heading levels down by one** so the appended content nests under the new parent section. Drop the `# CLAUDE.md — Wiki Protocols` H1 line entirely; turn `## Protocol N` → `### Protocol N`, `### Phase N` → `#### Phase N`, etc. Otherwise the user's file ends up with conflicting H1s and a broken hierarchy.
+
+Append result format:
+```markdown
+[user's existing CLAUDE.md content]
+
+## Wiki Protocols (from karpathy-claude-wiki)
+
+### Protocol 1 — Ingest
+[shifted content...]
+
+### Protocol 2 — Cross-Reference
+...
+```
+
+When done, tell the user explicitly: what you trimmed, what you appended, and which heading levels you shifted.
 
 ### Phase 5 — Scaffold the first entity
 
-Use the example entity name from Phase 1 Q4. Create:
+Use the example entity name from Phase 1 Q4. **The path depends on whether Phase 3 renamed anything**:
 
-```
-wiki/entities/<NAME>/profile.md
-```
+- If `investing` (default): use `wiki/entities/<NAME>/profile.md` and template `wiki/entities/_template/profile.md`
+- If renamed: use `wiki/<new-folder>/<NAME>/profile.md` and template `wiki/<new-folder>/_template/profile.md`
 
-Use `wiki/entities/_template/profile.md` as the template. Fill in basic frontmatter (title, type, created date). Leave the body sections empty for the user to populate.
+Copy the template to the new location and fill in basic frontmatter (title, created date, domain). Leave the body sections empty. **Don't invent thesis content** — that's the user's job.
 
 ### Phase 6 — Verify and hand off
 
-1. Show the user a tree of the new `wiki/` directory.
-2. Confirm `CLAUDE.md` integration worked (cat the relevant section).
-3. Tell the user, verbatim:
-   > "Wiki installed. To do your first ingest: drop a file into `wiki/raw/<category>/`, then say 'ingest this following the protocol'. The first ingest will refine the schema for your specific domain."
+1. **Generate the index**: `python scripts/wiki_index.py` (no args). This produces `wiki/_index.json` and `wiki/overview.md`. **Without these, the wiki has no index and downstream lint/search commands won't work.** If python isn't available, tell the user to install it and run this command later.
+
+2. **Cleanup**: `rm -rf .karpathy-tmp` (Phase 2 postponed this).
+
+3. Show the user a tree of the new `wiki/` directory.
+
+4. Confirm `CLAUDE.md` integration worked (cat the relevant section).
+
+5. Tell the user, verbatim:
+   > "Wiki installed. To do your first ingest: drop a file into `wiki/raw/<category>/` where `<category>` is one of `articles`, `papers`, `books`, `podcasts`, `conversations`. Then say 'ingest this following the protocol'. The first ingest will refine the schema for your specific domain."
 
 Stop after Phase 6. Do not pre-populate content. The user fills the wiki by living with it.
 
