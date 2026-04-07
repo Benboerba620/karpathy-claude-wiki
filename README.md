@@ -57,7 +57,7 @@ The crucial shift: **maintenance cost approaches zero**, because the LLM does th
 ### 1. Clone
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/karpathy-claude-wiki.git
+git clone https://github.com/Benboerba620/karpathy-claude-wiki.git
 cd karpathy-claude-wiki
 ```
 
@@ -110,7 +110,7 @@ After the first ingest, refine the schema based on what worked. Then ingest more
 ### Phase 2 — Clone & extract
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/karpathy-claude-wiki.git .karpathy-tmp
+git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 ```
 
 Move:
