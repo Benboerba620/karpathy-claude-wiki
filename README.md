@@ -201,7 +201,14 @@ mv wiki/entities wiki/<新名称>
 
 4. 确认 `CLAUDE.md` 整合成功(打印出相关章节)。
 
-5. 对用户说,原文如下:
+5. **告知用户 EXAMPLE 占位文件的处理方式**(不要自作主张删,让用户自己决定):
+   > "模板里有几个 `EXAMPLE-*.md` 和 `EXAMPLE/` 文件,用来展示页面结构长什么样。它们对 ingest 无害(Claude 会识别为占位并跳过),但如果你想要完全干净的起点,运行下面这条命令清掉:
+   > ```bash
+   > rm wiki/*/EXAMPLE-*.md 2>/dev/null; rm -rf wiki/*/EXAMPLE/ 2>/dev/null
+   > ```
+   > 不清也没事,看个人偏好。"
+
+6. 对用户说,原文如下:
    > "Wiki 安装完成。要做第一次 ingest:把一个文件放进 `wiki/raw/<category>/`(`<category>` 可选 `articles` / `papers` / `books` / `podcasts` / `conversations`),然后说"按协议摄入这个"。第一次 ingest 会根据你的具体领域优化 schema。"
 
 阶段 6 之后停止。不要预填内容。用户通过日常使用来填充 wiki。
@@ -468,7 +475,14 @@ Copy the template to the new location and fill in basic frontmatter (title, crea
 
 4. Confirm `CLAUDE.md` integration worked (cat the relevant section).
 
-5. Tell the user, verbatim:
+5. **Tell the user about the EXAMPLE placeholder files** (do NOT auto-delete — let them decide):
+   > "The template ships with a few `EXAMPLE-*.md` and `EXAMPLE/` files that show what a real entry looks like. They're harmless (Claude recognizes them as placeholders and skips them on ingest), but if you want a fully clean slate, run:
+   > ```bash
+   > rm wiki/*/EXAMPLE-*.md 2>/dev/null; rm -rf wiki/*/EXAMPLE/ 2>/dev/null
+   > ```
+   > Leaving them is also fine — purely personal preference."
+
+6. Tell the user, verbatim:
    > "Wiki installed. To do your first ingest: drop a file into `wiki/raw/<category>/` where `<category>` is one of `articles`, `papers`, `books`, `podcasts`, `conversations`. Then say 'ingest this following the protocol'. The first ingest will refine the schema for your specific domain."
 
 Stop after Phase 6. Do not pre-populate content. The user fills the wiki by living with it.
