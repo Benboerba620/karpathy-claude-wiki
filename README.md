@@ -5,6 +5,53 @@
 > 一个个人 LLM 知识库模板,**灵感来自 [Andrej Karpathy 的推文](https://x.com/karpathy/status/2039805659525644595)**——用 LLM 来构建和维护个人 wiki。本模板针对 [Claude Code](https://claude.com/claude-code) 优化,但任何能读写文件的 AI agent 都可以使用。
 
 **状态**:空模板。装上之后由用户填充内容。从那一刻起,LLM 替你完成所有的整理工作。
+## 给中文小白用户:最简单安装方法(Windows,推荐)
+
+如果你主要是 **中文用户 + Windows 用户 + 第一次接触这类项目**,推荐你先不要看后面的完整协议,直接按这 4 步来:
+
+### 1. 下载项目
+
+你可以二选一:
+- 会用 git: `git clone https://github.com/Benboerba620/karpathy-claude-wiki.git`
+- 不会用 git: 直接在 GitHub 页面点 **Code → Download ZIP** 下载后解压
+
+### 2. 打开 PowerShell,进入这个项目文件夹
+
+```powershell
+cd 你的项目路径\karpathy-claude-wiki
+```
+
+### 3. 一键安装到你的项目目录
+
+下面这个命令会自动帮你完成这几件事:
+- 复制 `wiki/`
+- 复制 `scripts/wiki_index.py`
+- 处理 `CLAUDE.md`
+- 创建第一个可跟踪的 entity
+- 自动生成索引并跑一次 lint
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
+```
+
+如果你还没有自己的项目目录,也可以先这样试:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-wiki-project" -EntityName "AAPL"
+```
+
+### 4. 打开 Claude Code,然后直接说
+
+> 读一下 `wiki/_schema.md` 和 `CLAUDE.md`,然后按 ingest 协议把我放进 `wiki/raw/` 的文件摄入到 wiki 里。
+
+### 小白常见问题
+
+- **我不懂 Git,能用吗?** 可以,下载 ZIP 解压也能用。
+- **我不懂 Markdown,能用吗?** 可以,你主要是“丢文件 + 提问题”,整理工作交给 AI。
+- **我必须先懂 schema / protocol 吗?** 不必。第一次先装起来、跑起来,后面再慢慢看。
+- **我是 Windows 用户,会不会麻烦?** 现在已经提供 PowerShell 安装脚本,比手动复制文件简单很多。
+
+---
 
 ---
 
@@ -54,7 +101,9 @@ wiki/
 
 ---
 
-## 快速上手(人类版,5 分钟)
+## 快速上手(进阶/手动安装,5 分钟)
+
+> 下面默认给出 bash 命令; 如果你在 Windows PowerShell 里操作,对应命令也一起写在下面。
 
 ### 1. 克隆
 
@@ -69,19 +118,34 @@ cd karpathy-claude-wiki
 cat wiki/_schema.md
 ```
 
+```powershell
+Get-Content .\wiki\_schema.md
+```
+
 这是 wiki 的"宪法"。AI 在每次操作前都会先读它。
 
 ### 3. 把 CLAUDE.md 移到你的项目根目录
 
 ```bash
-# 如果已经有 CLAUDE.md,把内容追加进去,不要覆盖
+# 如果目标项目还没有 CLAUDE.md,直接复制
 cp CLAUDE.md ../my-project/CLAUDE.md
 ```
+
+```powershell
+# 如果目标项目还没有 CLAUDE.md,直接复制
+Copy-Item .\CLAUDE.md ..\my-project\CLAUDE.md
+```
+
+如果目标项目**已经有** `CLAUDE.md`,不要直接覆盖。把本仓库里的协议内容手动合并进去,或者交给 AI agent 按下面的“AI 自动安装协议”处理。
 
 ### 4. 把第一份原始材料丢进 raw/
 
 ```bash
 cp ~/Downloads/some-research-paper.md wiki/raw/papers/
+```
+
+```powershell
+Copy-Item "$HOME\Downloads\some-research-paper.md" .\wiki\raw\papers\
 ```
 
 ### 5. 打开 Claude Code,然后对它说:
@@ -133,6 +197,10 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 mv wiki/entities wiki/<新名称>
 ```
 
+```powershell
+Move-Item .\wiki\entities .\wiki\<新名称>
+```
+
 | 领域 | 新文件夹名 | 配套术语 |
 |---|---|---|
 | `research` | `subjects/` | `entity` → `subject` |
@@ -159,7 +227,7 @@ mv wiki/entities wiki/<新名称>
 
 ### 阶段 4 — 整合 `CLAUDE.md`
 
-**情况 A:用户没有 `CLAUDE.md`** —— 直接 `cp .karpathy-tmp/CLAUDE.md ./CLAUDE.md`,完成。
+**情况 A:用户没有 `CLAUDE.md`** —— 直接 `cp .karpathy-tmp/CLAUDE.md ./CLAUDE.md`。PowerShell:`Copy-Item .\.karpathy-tmp\CLAUDE.md .\CLAUDE.md`。完成。
 
 **情况 B:用户已经有 `CLAUDE.md`** —— 追加,但必须做两件事:
 
@@ -195,7 +263,7 @@ mv wiki/entities wiki/<新名称>
 
 1. **生成索引**:`python scripts/wiki_index.py`(无参数)。这一步会生成 `wiki/_index.json` 和 `wiki/overview.md`。**没有这两个文件,wiki 没有索引,后续的 lint/search 全都没法跑**。如果用户没装 python,告诉他们装好后再手动跑一次。
 
-2. **清理临时目录**:`rm -rf .karpathy-tmp`(阶段 2 推迟到现在做)。
+2. **清理临时目录**:`rm -rf .karpathy-tmp`(阶段 2 推迟到现在做)。PowerShell 对应命令:`Remove-Item .\.karpathy-tmp -Recurse -Force`。
 
 3. 给用户展示新建的 `wiki/` 目录树。
 
@@ -205,6 +273,11 @@ mv wiki/entities wiki/<新名称>
    > "模板里有几个 `EXAMPLE-*.md` 和 `EXAMPLE/` 文件,用来展示页面结构长什么样。它们对 ingest 无害(Claude 会识别为占位并跳过),但如果你想要完全干净的起点,运行下面这条命令清掉:
    > ```bash
    > rm wiki/*/EXAMPLE-*.md 2>/dev/null; rm -rf wiki/*/EXAMPLE/ 2>/dev/null
+   > ```
+   > PowerShell:
+   > ```powershell
+   > Get-ChildItem .\wiki -Recurse -File -Filter 'EXAMPLE-*.md' | Remove-Item -Force
+   > Get-ChildItem .\wiki -Recurse -Directory -Filter 'EXAMPLE' | Remove-Item -Recurse -Force
    > ```
    > 不清也没事,看个人偏好。"
 
@@ -328,7 +401,9 @@ The crucial shift: **maintenance cost approaches zero**, because the LLM does th
 
 ---
 
-## Quick Start (Humans, 5 minutes)
+## Quick Start (Manual / advanced, 5 minutes)
+
+> The examples below use bash by default. If you're on Windows PowerShell, equivalent commands are included too.
 
 ### 1. Clone
 
@@ -343,19 +418,34 @@ cd karpathy-claude-wiki
 cat wiki/_schema.md
 ```
 
+```powershell
+Get-Content .\wiki\_schema.md
+```
+
 This is your wiki's "constitution". The AI will read it before every operation.
 
 ### 3. Move CLAUDE.md to your project root
 
 ```bash
-# If you already have a CLAUDE.md, append the contents instead of overwriting
+# If the target project does not already have a CLAUDE.md, just copy it
 cp CLAUDE.md ../my-project/CLAUDE.md
 ```
+
+```powershell
+# If the target project does not already have a CLAUDE.md, just copy it
+Copy-Item .\CLAUDE.md ..\my-project\CLAUDE.md
+```
+
+If the target project **already has** a `CLAUDE.md`, don't overwrite it. Merge the wiki protocols in manually, or let an AI agent follow the "AI installation protocol" below.
 
 ### 4. Drop your first source into raw/
 
 ```bash
 cp ~/Downloads/some-research-paper.md wiki/raw/papers/
+```
+
+```powershell
+Copy-Item "$HOME\Downloads\some-research-paper.md" .\wiki\raw\papers\
 ```
 
 ### 5. Open Claude Code and say:
@@ -407,6 +497,10 @@ For non-investing domains, do these three steps:
 mv wiki/entities wiki/<new-name>
 ```
 
+```powershell
+Move-Item .\wiki\entities .\wiki\<new-name>
+```
+
 | Domain | New folder | Term hint |
 |---|---|---|
 | `research` | `subjects/` | `entity` → `subject` |
@@ -433,7 +527,7 @@ Open `wiki/<new-name>/_template/profile.md` and replace the hard-coded fields:
 
 ### Phase 4 — Integrate `CLAUDE.md`
 
-**Case A: user has no `CLAUDE.md`** — just `cp .karpathy-tmp/CLAUDE.md ./CLAUDE.md`. Done.
+**Case A: user has no `CLAUDE.md`** — just `cp .karpathy-tmp/CLAUDE.md ./CLAUDE.md`. PowerShell: `Copy-Item .\.karpathy-tmp\CLAUDE.md .\CLAUDE.md`. Done.
 
 **Case B: user has an existing `CLAUDE.md`** — append, but with two transformations to avoid breaking the user's file:
 
@@ -469,7 +563,7 @@ Copy the template to the new location and fill in basic frontmatter (title, crea
 
 1. **Generate the index**: `python scripts/wiki_index.py` (no args). This produces `wiki/_index.json` and `wiki/overview.md`. **Without these, the wiki has no index and downstream lint/search commands won't work.** If python isn't available, tell the user to install it and run this command later.
 
-2. **Cleanup**: `rm -rf .karpathy-tmp` (Phase 2 postponed this).
+2. **Cleanup**: `rm -rf .karpathy-tmp` (Phase 2 postponed this). PowerShell: `Remove-Item .\.karpathy-tmp -Recurse -Force`.
 
 3. Show the user a tree of the new `wiki/` directory.
 
@@ -479,6 +573,11 @@ Copy the template to the new location and fill in basic frontmatter (title, crea
    > "The template ships with a few `EXAMPLE-*.md` and `EXAMPLE/` files that show what a real entry looks like. They're harmless (Claude recognizes them as placeholders and skips them on ingest), but if you want a fully clean slate, run:
    > ```bash
    > rm wiki/*/EXAMPLE-*.md 2>/dev/null; rm -rf wiki/*/EXAMPLE/ 2>/dev/null
+   > ```
+   > PowerShell:
+   > ```powershell
+   > Get-ChildItem .\wiki -Recurse -File -Filter 'EXAMPLE-*.md' | Remove-Item -Force
+   > Get-ChildItem .\wiki -Recurse -Directory -Filter 'EXAMPLE' | Remove-Item -Recurse -Force
    > ```
    > Leaving them is also fine — purely personal preference."
 

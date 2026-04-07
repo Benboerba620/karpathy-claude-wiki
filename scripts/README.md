@@ -1,6 +1,23 @@
 # Scripts
 
 Helper scripts for maintaining the wiki. Currently:
+## `install_wiki.ps1`
+
+A beginner-friendly Windows PowerShell installer for Chinese / non-technical users.
+
+It can:
+- copy `wiki/` into a target project
+- copy `scripts/wiki_index.py`
+- copy or merge `CLAUDE.md`
+- scaffold the first entity page
+- generate `_index.json` + `overview.md`
+- run `--lint`
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
+```
+
+Use `-Force` if the target `wiki/` already exists and you explicitly want to overwrite it.
 
 ## `wiki_index.py`
 
