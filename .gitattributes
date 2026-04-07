@@ -1,0 +1,6 @@
+# Enforce LF for shell scripts so they're executable on macOS/Linux
+# regardless of the OS that committed them.
+*.sh text eol=lf
+
+# PowerShell is fine with either, but pin it for consistency.
+*.ps1 text eol=crlf
