@@ -4,10 +4,39 @@
 
 > 一个个人 LLM 知识库模板,**灵感来自 [Andrej Karpathy 的推文](https://x.com/karpathy/status/2039805659525644595)**——用 LLM 来构建和维护个人 wiki。本模板针对 [Claude Code](https://claude.com/claude-code) 优化,但任何能读写文件的 AI agent 都可以使用。
 
-**状态**:空模板。装上之后由用户填充内容。从那一刻起,LLM 替你完成所有的整理工作。
+**状态**: 空模板。你负责放资料、提问题; LLM 负责整理、交叉引用、回写和持续维护。
+
+**如果你是第一次来这个项目,直接按下面分流:**
+- **中文 Windows 小白用户** → 看 `给中文小白用户:最简单安装方法`
+- **已经会 Git / Markdown / 命令行** → 看 `快速上手(进阶/手动安装,5 分钟)`
+- **想让 AI agent 自动帮你装** → 看 `AI 自动安装协议`
+
+**你会得到什么:**
+- 一个放在本地、纯 Markdown 的个人 wiki
+- 一套让 Claude / Cursor / Cline 按协议维护 wiki 的规则
+- 一个可以自动生成索引并检查健康状态的脚本
+- 一个对 Windows / PowerShell 更友好的安装入口
+
+**它适合谁:**
+- 想把研究、阅读、投资、写作资料长期积累下来的人
+- 希望“自己负责判断什么值得收录,AI 负责整理”的人
+- 不想先搭数据库、前端、RAG 系统,想先把东西用起来的人
+
+**它不太适合谁:**
+- 想立刻得到一个现成内容库的人
+- 完全不打算使用 AI agent,只想手工记笔记的人
+- 需要多人实时协作、权限管理、在线服务端的团队场景
+
+---
+
 ## 给中文小白用户:最简单安装方法(Windows,推荐)
 
-如果你主要是 **中文用户 + Windows 用户 + 第一次接触这类项目**,推荐你先不要看后面的完整协议,直接按这 4 步来:
+如果你主要是 **中文用户 + Windows 用户 + 第一次接触这类项目**,推荐你先不要看后面的完整协议,直接按这 4 步来。
+
+**开始前你只需要知道三件事:**
+- 你**不需要**先懂 schema、protocol、frontmatter 这些词
+- 你**不需要**会 Markdown; 你主要做的是“放文件 + 提问题”
+- 最推荐的环境是 **Windows + PowerShell + Claude Code**
 
 ### 1. 下载项目
 
@@ -50,8 +79,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 - **我不懂 Markdown,能用吗?** 可以,你主要是“丢文件 + 提问题”,整理工作交给 AI。
 - **我必须先懂 schema / protocol 吗?** 不必。第一次先装起来、跑起来,后面再慢慢看。
 - **我是 Windows 用户,会不会麻烦?** 现在已经提供 PowerShell 安装脚本,比手动复制文件简单很多。
-
----
+- **我没装 Python,会失败吗?** 不一定。安装脚本会尽量继续执行; 只是会跳过索引生成,你之后装好 Python 再运行 `python scripts/wiki_index.py` 即可。
+- **我只想先试试,不想污染现有项目?** 可以,直接把 `-TargetDir` 指到一个全新的空文件夹。
 
 ---
 
@@ -343,7 +372,6 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 </p>
 
 ---
----
 
 [中文](#中文) | [English](#karpathy-claude-wiki)
 
@@ -351,7 +379,12 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 
 > A personal LLM Knowledge Base template, **inspired by [Andrej Karpathy's tweet](https://x.com/karpathy/status/2039805659525644595)** on building personal wikis with LLMs. Optimized for [Claude Code](https://claude.com/claude-code) but works with any AI agent that can read & write files.
 
-**Status**: Empty template. You install it, you fill it. The LLM does the bookkeeping forever after.
+**Status**: Empty template. You decide what goes in; the LLM handles the bookkeeping.
+
+**If this is your first visit, use this route:**
+- **Chinese + Windows beginner** → jump to `给中文小白用户:最简单安装方法`
+- **Comfortable with Git / CLI** → jump to `Quick Start (Manual / advanced, 5 minutes)`
+- **Want an AI agent to install it for you** → jump to `AI Auto-Install Protocol`
 
 ---
 
