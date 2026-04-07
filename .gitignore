@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# OS
+Thumbs.db
+
+# Baidu Cloud sync (in case the dev environment is on a synced folder)
+*.baiduyun.uploading.cfg
+*.baiduyun.downloading.cfg
+
+# Local-only files
+.env
+*.local
+
+# Wiki: never commit raw materials (they're often copyrighted or sensitive)
+wiki/raw/articles/*
+wiki/raw/books/*
+wiki/raw/papers/*
+wiki/raw/podcasts/*
+wiki/raw/conversations/*
+!wiki/raw/articles/.gitkeep
+!wiki/raw/books/.gitkeep
+!wiki/raw/papers/.gitkeep
+!wiki/raw/podcasts/.gitkeep
+!wiki/raw/conversations/.gitkeep
+
+# Wiki: don't commit your generated index
+wiki/_index.json
+wiki/overview.md
