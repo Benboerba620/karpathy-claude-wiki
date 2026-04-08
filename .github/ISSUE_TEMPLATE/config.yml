@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / Discussion (问问题 / 聊想法)
+    url: https://github.com/Benboerba620/karpathy-claude-wiki/discussions
+    about: For "how do I...", "is it possible to...", or general ideas, please use Discussions instead of Issues. / "怎么用…"、"能不能…" 这类问题请用 Discussions，不要开 Issue。
