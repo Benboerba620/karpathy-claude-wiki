@@ -23,6 +23,7 @@
 ## 最近更新
 
 - `2026-04-08`：新增 `python scripts/wiki_index.py --report`，生成 `wiki/_attention.md` 注意力 / 链接结构报告
+- `2026-04-08`：修复已有项目 `CLAUDE.md` 被整段协议撑长的问题，改为把完整协议写入 `wiki/_protocols.md`，主 `CLAUDE.md` 只保留轻量入口
 - `2026-04-08`：新增 GitHub Actions `Wiki Lint`，提交和 PR 会自动检查 wiki 健康状态
 - `2026-04-08`：新增 `scripts/install_wiki.ps1`，Windows 小白用户可一键安装
 - `2026-04-08`：优化 `README` 首页导流，第一次来的用户更容易知道该怎么开始
