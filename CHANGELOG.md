@@ -1,18 +1,18 @@
-﻿# Changelog
+﻿# 更新日志
 
-All notable updates to `karpathy-claude-wiki` are documented here.
+这里记录 `karpathy-claude-wiki` 的重要更新。
 
 ## 2026-04-08
 
-- Added beginner-friendly Windows installer `scripts/install_wiki.ps1`
-- Improved README onboarding for Chinese beginners and first-time visitors
-- Added GitHub Actions workflow for automatic `Wiki Lint`
-- Hardened `scripts/wiki_index.py` for BOM frontmatter, safer link resolution, and fresh-page orphan handling
-- Added `python scripts/wiki_index.py --report` for attention / link-graph reporting
-- Added generated companion report `wiki/_attention.md`
+- 新增适合 Windows 小白用户的一键安装脚本 `scripts/install_wiki.ps1`
+- 优化 `README` 首页导流，更适合中文新用户和第一次访问者
+- 新增 GitHub Actions 工作流，自动运行 `Wiki Lint`
+- 加强 `scripts/wiki_index.py`：支持 BOM frontmatter、更稳的链接解析、以及新建页面的 orphan 缓冲逻辑
+- 新增 `python scripts/wiki_index.py --report`，支持注意力 / 链接结构报告
+- 新增生成文件 `wiki/_attention.md`
 
 ## 2026-04-07
 
-- Added Chinese README section and language switcher
-- Added clearer AI install protocol and EXAMPLE placeholder cleanup guidance
-- Published the empty Karpathy-style wiki template structure
+- 新增中文 README 和中英文切换入口
+- 改进 AI 安装协议，补充 EXAMPLE 占位文件清理说明
+- 发布 Karpathy 风格的空 wiki 模板结构

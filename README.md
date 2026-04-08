@@ -6,6 +6,8 @@
 >
 > **状态**：空模板。你负责放资料、提问题；LLM 负责整理、交叉引用、回写和持续维护。
 
+**Last updated**：`2026-04-08`
+
 **直接按你的情况选一条路：**
 
 | 你是谁 | 走哪条路 |
@@ -227,6 +229,8 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 > A personal LLM knowledge-base template, **inspired by [Andrej Karpathy's tweet](https://x.com/karpathy/status/2039805659525644595)** on building personal wikis with LLMs. Optimized for [Claude Code](https://claude.com/claude-code) but works with any AI agent that can read & write files.
 >
 > **Status**: Empty template. You decide what goes in; the LLM handles the bookkeeping.
+
+**Last updated**: `2026-04-08`
 
 **Pick the path that matches you:**
 
