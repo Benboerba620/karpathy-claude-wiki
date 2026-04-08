@@ -15,6 +15,14 @@
 | 🧑‍💻 **会用 Git / 命令行** | [手动安装（5 分钟）](#手动安装5-分钟) |
 | 🤖 **想让 AI agent 帮你装** | 把 [`INSTALL-FOR-AI.md`](./INSTALL-FOR-AI.md) 的链接发给 Claude Code，说"帮我装这个" |
 
+## 最近更新
+
+- `2026-04-08`：新增 `python scripts/wiki_index.py --report`，生成 `wiki/_attention.md` 注意力 / 链接结构报告
+- `2026-04-08`：新增 GitHub Actions `Wiki Lint`，提交和 PR 会自动检查 wiki 健康状态
+- `2026-04-08`：新增 `scripts/install_wiki.ps1`，Windows 小白用户可一键安装
+- `2026-04-08`：优化 `README` 首页导流，第一次来的用户更容易知道该怎么开始
+- 完整历史见 [`CHANGELOG.md`](./CHANGELOG.md)
+
 ---
 
 ## 这是什么？
@@ -228,6 +236,14 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 | 🍎 **macOS / Linux + coding beginner** | [One-shot install (bash)](#-macos--linux-beginner-one-shot-install) |
 | 🧑‍💻 **Comfortable with git / CLI** | [Manual install (5 minutes)](#manual-install-5-minutes) |
 | 🤖 **Want an AI agent to install it for you** | Send [`INSTALL-FOR-AI.md`](./INSTALL-FOR-AI.md) to Claude Code and say "install this for me" |
+
+## Recent Updates
+
+- `2026-04-08`: Added `python scripts/wiki_index.py --report` to generate the attention / link-graph report in `wiki/_attention.md`
+- `2026-04-08`: Added GitHub Actions `Wiki Lint` for automatic wiki health checks on pushes and PRs
+- `2026-04-08`: Added `scripts/install_wiki.ps1` for beginner-friendly Windows setup
+- `2026-04-08`: Improved README routing so first-time visitors can pick the right install path faster
+- Full history: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ---
 
