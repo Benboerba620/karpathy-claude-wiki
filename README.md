@@ -1,5 +1,8 @@
 [中文](#中文) ｜ [English](#english)
 
+[![Latest Release](https://img.shields.io/github/v/release/Benboerba620/karpathy-claude-wiki?display_name=tag)](https://github.com/Benboerba620/karpathy-claude-wiki/releases/latest)
+[![Wiki Lint](https://github.com/Benboerba620/karpathy-claude-wiki/actions/workflows/wiki-lint.yml/badge.svg)](https://github.com/Benboerba620/karpathy-claude-wiki/actions/workflows/wiki-lint.yml)
+
 # 中文
 
 > 一个个人 LLM 知识库模板，**灵感来自 [Andrej Karpathy 的推文](https://x.com/karpathy/status/2039805659525644595)** —— 用 LLM 来构建和维护个人 wiki。本模板针对 [Claude Code](https://claude.com/claude-code) 优化，但任何能读写文件的 AI agent 都可以使用。
