@@ -35,7 +35,18 @@ python scripts/wiki_index.py --lint
 
 # Quick stats by type and domain
 python scripts/wiki_index.py --stats
+
+# Generate attention / link-graph report
+python scripts/wiki_index.py --report
 ```
+
+`--report` generates a structural attention summary and writes `wiki/_attention.md`.
+It highlights:
+- god nodes (most-linked pages)
+- top-5 attention concentration
+- hub sources with high fan-out
+- lonely recent pages with zero inbound links
+- concepts ranked by source-reference count
 
 This is a minimal version (~200 lines). The original it was distilled from is ~700 lines and has domain-specific extensions for entity sub-pages and concept directories. Customize freely.
 

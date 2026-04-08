@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Wiki index generator + search + lint.
 
 Usage:
@@ -17,7 +17,7 @@ import argparse
 import json
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path, PurePosixPath
 
 # Force UTF-8 stdout/stderr (Windows console default is GBK, breaks Chinese output)
@@ -33,7 +33,7 @@ INDEX_JSON = WIKI_DIR / "_index.json"
 OVERVIEW_MD = WIKI_DIR / "overview.md"
 
 # Files / dirs to exclude from indexing
-EXCLUDED_FILES = {"_schema.md", "_log.md", "_index.json", "overview.md", "inbox-digest.md"}
+EXCLUDED_FILES = {"_schema.md", "_log.md", "_index.json", "overview.md", "inbox-digest.md", "_attention.md"}
 EXCLUDED_DIRS = {"raw", "_template"}
 
 # Files to skip in lint (templates and examples have intentional placeholder wikilinks)
@@ -47,6 +47,11 @@ STALE_DAYS = 90
 
 # New scaffold pages are often intentionally isolated for a few days.
 FRESH_PAGE_DAYS = 7
+
+# Report thresholds (--report mode)
+REPORT_LONELY_DAYS = 14         # "lonely recents" = created within this window with 0 inbound
+REPORT_HUB_FAN_OUT = 4          # min distinct outbound targets to qualify as a hub source
+REPORT_HUB_TYPE_SPAN = 2        # min distinct types those targets must span
 
 FRONTMATTER_RE = re.compile(r"\A(?:\ufeff)?---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)", re.DOTALL)
 
@@ -270,6 +275,240 @@ def cmd_default():
     log("Done.")
 
 
+def display_title(page: dict) -> str:
+    """Best human-readable name for a page.
+
+    Falls back to parent directory for entity-style pages whose title is just
+    'profile' / 'tracker' / 'notes'.
+    """
+    title = str(page.get("title", "")).strip()
+    if title and title not in {"profile", "tracker", "notes"}:
+        return title
+    parent = PurePosixPath(page["path"]).parent.name
+    return parent or PurePosixPath(page["path"]).stem
+
+
+def is_skipped_for_report(page: dict) -> bool:
+    """Skip templates from report metrics — they're scaffolding, never real content.
+
+    EXAMPLE pages are kept: they're demo content the template ships so users
+    see what a populated wiki looks like.
+    """
+    return "_template" in page["path"]
+
+
+def cmd_report():
+    """Generate attention/structure report (god nodes, concentration, hubs, lonely recents).
+
+    Inspired by Graphify's GRAPH_REPORT.md. Pure graph computation, zero LLM.
+
+    Outputs:
+      - JSON to stdout (machine-readable, for downstream tools)
+      - wiki/_attention.md (human-readable, for skim review)
+    """
+    index = build_index()
+    pages = [p for p in index["pages"] if not is_skipped_for_report(p)]
+    pages_by_path = {p["path"]: p for p in pages}
+    # Filter inbound links to only count ones from non-skipped pages and pointing to non-skipped pages
+    inbound_links = {
+        path: [src for src in srcs if src in pages_by_path]
+        for path, srcs in index["inbound_links"].items()
+        if path in pages_by_path
+    }
+
+    today = datetime.now()
+    cutoff_lonely = (today - timedelta(days=REPORT_LONELY_DAYS)).strftime("%Y-%m-%d")
+
+    # ----- god nodes (top 15 by inbound count) -----
+    god_nodes = []
+    for path in sorted(inbound_links, key=lambda p: len(inbound_links[p]), reverse=True):
+        sources = inbound_links[path]
+        if not sources:
+            continue
+        if len(god_nodes) >= 15:
+            break
+        page = pages_by_path.get(path)
+        if not page:
+            continue
+        god_nodes.append({
+            "path": path,
+            "title": display_title(page),
+            "type": page.get("type", ""),
+            "inbound_count": len(sources),
+        })
+
+    # ----- attention concentration (top 5 share) -----
+    all_counts = sorted((len(s) for s in inbound_links.values()), reverse=True)
+    total_inbound = sum(all_counts)
+    top5_inbound = sum(all_counts[:5])
+    concentration = {
+        "top5_share_pct": round(100 * top5_inbound / total_inbound, 1) if total_inbound else 0,
+        "top5_count": top5_inbound,
+        "total_count": total_inbound,
+    }
+
+    # ----- hub sources (high fan-out, cross-type) -----
+    # A "hub source" is a source-summary whose resolved outbound spans many distinct
+    # pages and at least 2 types. Often a survey-style report or a multi-company interview.
+    hub_sources = []
+    for page in pages:
+        if page.get("type") != "source-summary":
+            continue
+        targets = set(page.get("resolved_outbound_links", []))
+        if len(targets) < REPORT_HUB_FAN_OUT:
+            continue
+        target_types = {pages_by_path[t]["type"] for t in targets if t in pages_by_path}
+        if len(target_types) < REPORT_HUB_TYPE_SPAN:
+            continue
+        hub_sources.append({
+            "path": page["path"],
+            "title": display_title(page),
+            "fan_out": len(targets),
+            "spans_types": sorted(t for t in target_types if t),
+            "inbound_count": len(inbound_links.get(page["path"], [])),
+        })
+    hub_sources.sort(key=lambda b: (-b["fan_out"], b["inbound_count"]))
+
+    # ----- lonely recents (recently created, zero inbound) -----
+    lonely_recents = []
+    for page in pages:
+        created = page.get("created", "")
+        if not created or str(created) < cutoff_lonely:
+            continue
+        if len(inbound_links.get(page["path"], [])) > 0:
+            continue
+        lonely_recents.append({
+            "path": page["path"],
+            "title": display_title(page),
+            "type": page.get("type", ""),
+            "created": created,
+        })
+    lonely_recents.sort(key=lambda x: x["created"], reverse=True)
+
+    # ----- top concepts by source-reference count -----
+    concept_pages = [p for p in pages if p.get("type") == "concept"]
+    source_pages = [p for p in pages if p.get("type") == "source-summary"]
+    concept_source_count = []
+    for cp in concept_pages:
+        cp_path = cp["path"]
+        count = sum(1 for sp in source_pages if cp_path in sp.get("resolved_outbound_links", []))
+        if count > 0:
+            concept_source_count.append({
+                "path": cp_path,
+                "title": display_title(cp),
+                "source_count": count,
+            })
+    concept_source_count.sort(key=lambda c: -c["source_count"])
+
+    summary = {
+        "top_god_node": (
+            f"{god_nodes[0]['title']} ({god_nodes[0]['type']}, {god_nodes[0]['inbound_count']} inbound)"
+        ) if god_nodes else None,
+        "concentration_pct": concentration["top5_share_pct"],
+        "hub_sources_count": len(hub_sources),
+        "lonely_recents_count": len(lonely_recents),
+        "top_concept": (
+            f"{concept_source_count[0]['title']} ({concept_source_count[0]['source_count']} sources)"
+        ) if concept_source_count else None,
+    }
+
+    report = {
+        "generated_at": datetime.now().isoformat(timespec="seconds"),
+        "summary": summary,
+        "god_nodes": god_nodes,
+        "concentration": concentration,
+        "hub_sources": hub_sources[:10],
+        "lonely_recents": lonely_recents,
+        "top_concepts_by_source_count": concept_source_count[:10],
+    }
+
+    write_attention_md(report)
+    log(
+        f"Report: concentration {summary['concentration_pct']}% | "
+        f"hub sources {summary['hub_sources_count']} | "
+        f"lonely recents {summary['lonely_recents_count']}"
+    )
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+def write_attention_md(report: dict) -> None:
+    """Render the report as wiki/_attention.md (human-readable companion to the JSON)."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    lines = [
+        "---",
+        "title: Wiki Attention Report",
+        "type: meta",
+        f"updated: {today}",
+        "---",
+        "",
+        "# Wiki Attention Report",
+        "",
+        f"> Auto-generated {today}. Refresh: `python scripts/wiki_index.py --report`",
+        "",
+        "## Concentration",
+        "",
+        f"- Top 5 inbound share: **{report['concentration']['top5_share_pct']}%** "
+        f"({report['concentration']['top5_count']} / {report['concentration']['total_count']})",
+        "",
+        "## God nodes (top 15 by inbound count)",
+        "",
+        "| # | Title | Type | Inbound |",
+        "|---|-------|------|---------|",
+    ]
+    if not report["god_nodes"]:
+        lines.append("| _ | _none_ | _ | _ |")
+    for i, n in enumerate(report["god_nodes"], 1):
+        link = f"[[{n['path'].removesuffix('.md')}|{n['title']}]]"
+        lines.append(f"| {i} | {link} | {n['type']} | {n['inbound_count']} |")
+
+    lines += [
+        "",
+        f"## Hub sources (fan-out ≥{REPORT_HUB_FAN_OUT}, spans ≥{REPORT_HUB_TYPE_SPAN} types)",
+        "",
+        "> One source connecting many entities/concepts — likely a survey-style report",
+        "> or multi-company interview worth backlinking from each touched page.",
+        "",
+        "| Source | fan-out | spans types | inbound |",
+        "|--------|---------|-------------|---------|",
+    ]
+    if not report["hub_sources"]:
+        lines.append("| _none_ | _ | _ | _ |")
+    for h in report["hub_sources"]:
+        link = f"[[{h['path'].removesuffix('.md')}|{h['title']}]]"
+        spans = ", ".join(h["spans_types"])
+        lines.append(f"| {link} | {h['fan_out']} | {spans} | {h['inbound_count']} |")
+
+    lines += [
+        "",
+        f"## Lonely recents (< {REPORT_LONELY_DAYS}d old, 0 inbound)",
+        "",
+        "| Title | Type | Created |",
+        "|-------|------|---------|",
+    ]
+    if not report["lonely_recents"]:
+        lines.append("| _none_ | _ | _ |")
+    for n in report["lonely_recents"]:
+        link = f"[[{n['path'].removesuffix('.md')}|{n['title']}]]"
+        lines.append(f"| {link} | {n['type']} | {n['created']} |")
+
+    lines += [
+        "",
+        "## Concepts ranked by source-reference count",
+        "",
+        "| Title | Sources referencing |",
+        "|-------|---------------------|",
+    ]
+    if not report["top_concepts_by_source_count"]:
+        lines.append("| _none_ | _ |")
+    for c in report["top_concepts_by_source_count"]:
+        link = f"[[{c['path'].removesuffix('.md')}|{c['title']}]]"
+        lines.append(f"| {link} | {c['source_count']} |")
+
+    out_path = WIKI_DIR / "_attention.md"
+    out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    log(f"Wrote {out_path.relative_to(SCRIPT_DIR.parent)}")
+
+
 def cmd_search(query: str):
     """Simple substring search across page titles + content."""
     query_lower = query.lower()
@@ -345,10 +584,12 @@ def cmd_stats():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Wiki index + search + lint")
+    parser = argparse.ArgumentParser(description="Wiki index + search + lint + report")
     parser.add_argument("--search", metavar="QUERY", help="Search pages by keyword")
     parser.add_argument("--lint", action="store_true", help="Run health check")
     parser.add_argument("--stats", action="store_true", help="Show stats")
+    parser.add_argument("--report", action="store_true",
+                        help="Generate attention report (god nodes, hub sources, lonely recents)")
     args = parser.parse_args()
 
     if args.search:
@@ -357,6 +598,8 @@ def main():
         cmd_lint()
     elif args.stats:
         cmd_stats()
+    elif args.report:
+        cmd_report()
     else:
         cmd_default()
 
