@@ -8,8 +8,8 @@ A beginner-friendly Windows PowerShell installer for Chinese / non-technical use
 It can:
 - copy `wiki/` into a target project
 - copy `scripts/wiki_index.py`
-- copy or merge `CLAUDE.md`
-- scaffold the first entity page
+- copy `CLAUDE.md` or add a lightweight entry when one already exists
+- write `wiki/_protocols.md` and scaffold the first entity page
 - generate `_index.json` + `overview.md`
 - run `--lint`
 

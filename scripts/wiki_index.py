@@ -33,7 +33,7 @@ INDEX_JSON = WIKI_DIR / "_index.json"
 OVERVIEW_MD = WIKI_DIR / "overview.md"
 
 # Files / dirs to exclude from indexing
-EXCLUDED_FILES = {"_schema.md", "_log.md", "_index.json", "overview.md", "inbox-digest.md", "_attention.md"}
+EXCLUDED_FILES = {"_schema.md", "_log.md", "_index.json", "overview.md", "inbox-digest.md", "_attention.md", "_protocols.md"}
 EXCLUDED_DIRS = {"raw", "_template"}
 
 # Files to skip in lint (templates and examples have intentional placeholder wikilinks)

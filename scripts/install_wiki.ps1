@@ -19,56 +19,97 @@ function Write-Step {
     Write-Host "[karpathy-claude-wiki] $Message" -ForegroundColor Cyan
 }
 
-function Shift-HeadingLevels {
-    param([string]$Text)
+function Write-Utf8File {
+    param(
+        [string]$Path,
+        [string]$Content,
+        [bool]$WithBom = $false
+    )
 
-    $lines = $Text -split "`r?`n"
-    $shifted = foreach ($line in $lines) {
-        if ($line -match '^(#{2,5})\s+') {
-            '#' + $line
-        }
-        elseif ($line -match '^(#{6})\s+') {
-            $line
-        }
-        else {
-            $line
-        }
+    $encoding = New-Object System.Text.UTF8Encoding($WithBom)
+    [System.IO.File]::WriteAllText($Path, $Content, $encoding)
+}
+
+function Get-ProtocolBody {
+    param([string]$TemplateText)
+
+    $marker = '## Protocol 1 — Ingest'
+    $start = $TemplateText.IndexOf($marker)
+    if ($start -lt 0) {
+        throw "模板 CLAUDE.md 中未找到 '$marker'"
     }
-    return ($shifted -join "`r`n")
+
+    return $TemplateText.Substring($start).Trim()
+}
+
+function Write-ProtocolFile {
+    param(
+        [string]$TemplatePath,
+        [string]$WikiRoot,
+        [string]$WikiDirName
+    )
+
+    $template = Get-Content -Raw -Encoding UTF8 $TemplatePath
+    $body = Get-ProtocolBody -TemplateText $template
+    $protocolPath = Join-Path $WikiRoot '_protocols.md'
+    $today = Get-Date -Format 'yyyy-MM-dd'
+    $schemaPath = "$WikiDirName/_schema.md"
+
+    $content = @"
+---
+title: Wiki Protocols
+type: meta
+created: $today
+updated: $today
+---
+
+# Wiki Protocols
+
+> Installed from karpathy-claude-wiki. Read this together with $schemaPath whenever working with the wiki.
+
+$body
+"@
+
+    Write-Utf8File -Path $protocolPath -Content ($content.Trim() + "`r`n")
+    Write-Step "已写入 wiki 协议文件: $protocolPath"
 }
 
 function Merge-ClaudeMd {
     param(
         [string]$TemplatePath,
-        [string]$TargetPath
+        [string]$TargetPath,
+        [string]$WikiDirName
     )
 
-    $template = Get-Content -Raw -Encoding UTF8 $TemplatePath
     if (-not (Test-Path $TargetPath)) {
         Copy-Item $TemplatePath $TargetPath -Force
-        Write-Step '已复制 CLAUDE.md 到目标项目根目录'
+        Write-Step '已复制完整 CLAUDE.md 到目标项目根目录'
         return
     }
 
-    $marker = '## Protocol 1 — Ingest'
-    $start = $template.IndexOf($marker)
-    if ($start -lt 0) {
-        throw "模板 CLAUDE.md 中未找到 '$marker'"
-    }
-
-    $trimmed = $template.Substring($start).Trim()
-    $shifted = Shift-HeadingLevels -Text $trimmed
     $existing = Get-Content -Raw -Encoding UTF8 $TargetPath
-
-    if ($existing.Contains('## Wiki Protocols (from karpathy-claude-wiki)')) {
-        Write-Step '目标项目已包含 karpathy-claude-wiki 协议，跳过 CLAUDE.md 追加'
+    $sectionHeader = '## Wiki Protocols (karpathy-claude-wiki)'
+    if ($existing.Contains($sectionHeader)) {
+        Write-Step '目标项目已包含 wiki 轻量接入段，跳过 CLAUDE.md 追加'
         return
     }
 
-    $merged = ($existing.TrimEnd() + "`r`n`r`n## Wiki Protocols (from karpathy-claude-wiki)`r`n`r`n" + $shifted + "`r`n")
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText($TargetPath, $merged, $utf8NoBom)
-    Write-Step '已将 wiki 协议追加到现有 CLAUDE.md'
+    $schemaPath = "$WikiDirName/_schema.md"
+    $protocolsPath = "$WikiDirName/_protocols.md"
+    $lightweightSection = @"
+## Wiki Protocols (karpathy-claude-wiki)
+
+When working with $WikiDirName/, first read:
+- $schemaPath
+- $protocolsPath
+
+Use those files for ingest, cross-reference, contradiction scan, crystallization, and periodic wiki maintenance.
+If the wiki protocol conflicts with project-specific instructions above, surface the conflict and ask the user which rule should win.
+"@
+
+    $merged = $existing.TrimEnd() + "`r`n`r`n" + $lightweightSection.Trim() + "`r`n"
+    Write-Utf8File -Path $TargetPath -Content $merged
+    Write-Step '已向现有 CLAUDE.md 追加轻量 wiki 接入段'
 }
 
 function New-FirstEntity {
@@ -106,8 +147,7 @@ function New-FirstEntity {
     $content = $content.Replace('- Variable 3 — why it matters, how to measure', '- ')
     $content = $content.Replace('- (questions you haven''t answered yet)', '- ')
 
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText($entityProfile, $content, $utf8NoBom)
+    Write-Utf8File -Path $entityProfile -Content $content
     Write-Step "已创建首个 entity: $entityProfile"
 }
 
@@ -151,7 +191,8 @@ if (-not (Test-Path $targetScriptsDir)) {
 Copy-Item $sourceIndexScript $targetIndexScript -Force
 Write-Step '已复制 scripts/wiki_index.py'
 
-Merge-ClaudeMd -TemplatePath $sourceClaude -TargetPath $targetClaude
+Write-ProtocolFile -TemplatePath $sourceClaude -WikiRoot $targetWiki -WikiDirName $WikiDirName
+Merge-ClaudeMd -TemplatePath $sourceClaude -TargetPath $targetClaude -WikiDirName $WikiDirName
 New-FirstEntity -WikiRoot $targetWiki -Name $EntityName
 
 if (-not $SkipIndex) {
@@ -178,8 +219,10 @@ if (-not $SkipIndex) {
     }
 }
 
+$schemaPath = "$WikiDirName/_schema.md"
+$protocolsPath = "$WikiDirName/_protocols.md"
 Write-Host ''
 Write-Host '安装完成。下一步：' -ForegroundColor Green
 Write-Host "1. 把原始文件放进 $WikiDirName\raw\articles 或 papers 等目录" -ForegroundColor Green
 Write-Host '2. 打开 Claude Code' -ForegroundColor Green
-Write-Host "3. 对它说：读一下 '$WikiDirName/_schema.md' 和 'CLAUDE.md'，然后按 ingest 协议把我刚放进去的文件摄入到 wiki 里。" -ForegroundColor Green
+Write-Host "3. 对它说：读一下 '$schemaPath'、'$protocolsPath' 和 'CLAUDE.md'，然后按 ingest 协议把我刚放进去的文件摄入到 wiki 里。" -ForegroundColor Green

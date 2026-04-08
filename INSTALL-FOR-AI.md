@@ -62,25 +62,35 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 
 ## 阶段 4 — 整合 `CLAUDE.md`
 
-**情况 A：用户没有 `CLAUDE.md`** —— 直接 `cp .karpathy-tmp/CLAUDE.md ./CLAUDE.md`。
+先做一件事：**无论用户有没有现成 `CLAUDE.md`，都要把完整 wiki 协议写入 `wiki/_protocols.md`**。这个文件由模板 `CLAUDE.md` 中 `## Protocol 1 — Ingest` 及其后续内容组成。
 
-**情况 B：用户已经有 `CLAUDE.md`** —— 追加，但必须做两件事：
+**情况 A：用户没有 `CLAUDE.md`** —— 直接把模板的 `CLAUDE.md` 复制到项目根目录；同时写入 `wiki/_protocols.md`。
 
-1. **裁掉模板的 standalone 引言**。`.karpathy-tmp/CLAUDE.md` 开头有 "If you're a human reading this for the first time..."，是写给独立文件的，merge 进去会变成尴尬的内嵌旁白。**只从 `## Protocol 1 — Ingest` 开始 append**，前面全部跳过。
+**情况 B：用户已经有 `CLAUDE.md`** —— **不要把整套 wiki 协议原样 append 到用户主 `CLAUDE.md`**。改成下面这种轻量接入：
 
-2. **所有标题级别下移一级**。`# CLAUDE.md — Wiki Protocols` H1 整行删除；`## Protocol N` → `### Protocol N`，`### Phase N` → `#### Phase N`，依此类推。否则用户文件会出现两个 H1 + 层级混乱。
+1. 把完整 wiki 协议写入 `wiki/_protocols.md`
+2. 在用户现有 `CLAUDE.md` 末尾追加一个短章节，内容如下：
 
-追加格式：
 ```markdown
-[用户原本的 CLAUDE.md 内容]
+## Wiki Protocols (karpathy-claude-wiki)
 
-## Wiki Protocols (from karpathy-claude-wiki)
+When working with `wiki/`, first read:
+- `wiki/_schema.md`
+- `wiki/_protocols.md`
 
-### Protocol 1 — Ingest
-[已下移层级的内容...]
+Use those files for ingest, cross-reference, contradiction scan, crystallization, and periodic wiki maintenance.
+If the wiki protocol conflicts with project-specific instructions above, surface the conflict and ask the user which rule should win.
 ```
 
-完成后明确告诉用户：你裁掉了什么、追加了什么、改了哪些标题层级。
+这样做的目的：
+- 不把用户原本的主 `CLAUDE.md` 撑得很长
+- 让完整 wiki 协议留在 `wiki/` 内部，只有处理 wiki 时才读取
+- 保留用户自己已有的工作流、行业背景和命令系统
+
+完成后明确告诉用户：
+- 你是否复制了完整 `CLAUDE.md`
+- 你是否写入了 `wiki/_protocols.md`
+- 如果用户已有 `CLAUDE.md`，你只追加了一个轻量入口，而不是整套协议
 
 ## 阶段 5 — 创建第一个 entity
 
@@ -96,7 +106,7 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 1. **生成索引**：`python scripts/wiki_index.py`（无参数）。会生成 `wiki/_index.json` 和 `wiki/overview.md`。**没有这两个文件，wiki 没有索引，后续 lint/search 全都跑不起来**。如果用户没装 python，告诉他们装好后再手动跑。
 2. **清理临时目录**：`rm -rf .karpathy-tmp`（PowerShell：`Remove-Item .\.karpathy-tmp -Recurse -Force`）。
 3. 给用户展示新建的 `wiki/` 目录树。
-4. 确认 `CLAUDE.md` 整合成功（打印相关章节）。
+4. 确认 `CLAUDE.md` 轻量接入或复制成功，并展示 `wiki/_protocols.md` 已写入。
 5. **告知 EXAMPLE 占位文件**（**不要自动删，让用户自己决定**）：
    > "模板里有几个 `EXAMPLE-*.md` 和 `EXAMPLE/` 文件展示页面结构。它们对 ingest 无害（Claude 会识别为占位并跳过）。要完全干净的起点：
    > ```bash
@@ -105,7 +115,7 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
    > 不清也没事。"
 
 6. 对用户说，原文如下：
-   > "Wiki 安装完成。第一次 ingest：把一个文件放进 `wiki/raw/<category>/`（`articles` / `papers` / `books` / `podcasts` / `conversations`），然后说 '按协议摄入这个'。第一次 ingest 会根据你的具体领域优化 schema。"
+   > "Wiki 安装完成。第一次 ingest：把一个文件放进 `wiki/raw/<category>/`（`articles` / `papers` / `books` / `podcasts` / `conversations`），然后说 '按协议摄入这个'。第一次 ingest 前，先确保 agent 读过 `wiki/_schema.md`、`wiki/_protocols.md` 和 `CLAUDE.md`。"
 
 阶段 6 之后停止。**不要预填内容**。用户通过日常使用来填充 wiki。
 
@@ -166,25 +176,35 @@ Open `wiki/<new-name>/_template/profile.md` and replace:
 
 ## Phase 4 — Integrate `CLAUDE.md`
 
-**Case A: user has no `CLAUDE.md`** — just `cp .karpathy-tmp/CLAUDE.md ./CLAUDE.md`. Done.
+First do one thing unconditionally: **write the full wiki protocol to `wiki/_protocols.md`**, using everything from the template `CLAUDE.md` starting at `## Protocol 1 — Ingest`.
 
-**Case B: user has an existing `CLAUDE.md`** — append, with two transformations:
+**Case A: user has no `CLAUDE.md`** — copy the template `CLAUDE.md` to the project root; also write `wiki/_protocols.md`.
 
-1. **Trim the template's standalone intro.** `.karpathy-tmp/CLAUDE.md` starts with a "If you're a human reading this for the first time..." preamble that makes sense as a standalone file but becomes awkward in-file narration when merged. **Skip everything before `## Protocol 1 — Ingest` and only append from there.**
+**Case B: user has an existing `CLAUDE.md`** — **do not append the full wiki protocol into the user's main `CLAUDE.md`**. Use lightweight integration instead:
 
-2. **Shift all heading levels down by one** so the appended content nests under the new parent section. Drop the `# CLAUDE.md — Wiki Protocols` H1 line entirely; turn `## Protocol N` → `### Protocol N`, `### Phase N` → `#### Phase N`, etc. Otherwise the user's file ends up with conflicting H1s and a broken hierarchy.
+1. Write the full wiki protocol to `wiki/_protocols.md`
+2. Append this short section to the user's existing `CLAUDE.md`:
 
-Append format:
 ```markdown
-[user's existing CLAUDE.md content]
+## Wiki Protocols (karpathy-claude-wiki)
 
-## Wiki Protocols (from karpathy-claude-wiki)
+When working with `wiki/`, first read:
+- `wiki/_schema.md`
+- `wiki/_protocols.md`
 
-### Protocol 1 — Ingest
-[shifted content...]
+Use those files for ingest, cross-reference, contradiction scan, crystallization, and periodic wiki maintenance.
+If the wiki protocol conflicts with project-specific instructions above, surface the conflict and ask the user which rule should win.
 ```
 
-When done, tell the user explicitly: what you trimmed, what you appended, and which heading levels you shifted.
+Why this is better:
+- it keeps the user's main `CLAUDE.md` compact
+- it keeps the full wiki protocol inside `wiki/`, only read when needed
+- it preserves the user's own workflow, domain background, and command system
+
+When done, tell the user explicitly:
+- whether you copied the full `CLAUDE.md`
+- whether you wrote `wiki/_protocols.md`
+- if the user already had `CLAUDE.md`, that you added only a lightweight entry instead of the full protocol
 
 ## Phase 5 — Scaffold the first entity
 
@@ -200,7 +220,7 @@ Copy the template to the new location and fill in basic frontmatter (title, crea
 1. **Generate the index**: `python scripts/wiki_index.py` (no args). This produces `wiki/_index.json` and `wiki/overview.md`. **Without these, the wiki has no index and downstream lint/search commands won't work.** If python isn't available, tell the user to install it and run this command later.
 2. **Cleanup**: `rm -rf .karpathy-tmp` (PowerShell: `Remove-Item .\.karpathy-tmp -Recurse -Force`).
 3. Show the user a tree of the new `wiki/` directory.
-4. Confirm `CLAUDE.md` integration worked (cat the relevant section).
+4. Confirm `CLAUDE.md` copy/lightweight integration worked, and show that `wiki/_protocols.md` was written.
 5. **Tell the user about EXAMPLE placeholder files** (do NOT auto-delete — let them decide):
    > "The template ships with `EXAMPLE-*.md` and `EXAMPLE/` files that show what real entries look like. They're harmless (Claude recognizes them as placeholders and skips them on ingest). To get a fully clean slate:
    > ```bash
@@ -209,6 +229,6 @@ Copy the template to the new location and fill in basic frontmatter (title, crea
    > Leaving them is also fine."
 
 6. Tell the user, verbatim:
-   > "Wiki installed. To do your first ingest: drop a file into `wiki/raw/<category>/` where `<category>` is one of `articles`, `papers`, `books`, `podcasts`, `conversations`. Then say 'ingest this following the protocol'. The first ingest will refine the schema for your specific domain."
+   > "Wiki installed. To do your first ingest: drop a file into `wiki/raw/<category>/` where `<category>` is one of `articles`, `papers`, `books`, `podcasts`, `conversations`. Then say 'ingest this following the protocol'. Before the first ingest, make sure the agent has read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`."
 
 Stop after Phase 6. **Do not pre-populate content.** The user fills the wiki by living with it.

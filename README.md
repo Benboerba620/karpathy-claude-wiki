@@ -82,7 +82,7 @@ cd 你的项目路径\karpathy-claude-wiki
 powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
 ```
 
-这一条命令会自动帮你：复制 `wiki/`、复制 `scripts/wiki_index.py`、处理 `CLAUDE.md`、创建第一个可跟踪的 entity（这里是 `AAPL`，你可以换成任意股票代码 / 书名 / 人名）、生成索引并跑 lint。
+这一条命令会自动帮你：复制 `wiki/`、复制 `scripts/wiki_index.py`、处理 `CLAUDE.md`（已有文件时只追加轻量入口，并把完整 wiki 协议写入 `wiki/_protocols.md`）、创建第一个可跟踪的 entity（这里是 `AAPL`，你可以换成任意股票代码 / 书名 / 人名）、生成索引并跑 lint。
 
 如果你还没有自己的项目目录，把 `-TargetDir` 指到一个全新的空文件夹即可：
 
@@ -92,7 +92,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 
 ### 4. 打开 Claude Code，对它说
 
-> 读一下 `wiki/_schema.md` 和 `CLAUDE.md`，然后按 ingest 协议把我放进 `wiki/raw/` 的文件摄入到 wiki 里。
+> 读一下 `wiki/_schema.md`、`wiki/_protocols.md` 和 `CLAUDE.md`，然后按 ingest 协议把我放进 `wiki/raw/` 的文件摄入到 wiki 里。
 
 ### 小白常见问题
 
@@ -133,7 +133,7 @@ macOS 默认装了 Python 3，如果你之前删过，脚本会优雅跳过索�
 
 ### 3. 打开 Claude Code，对它说
 
-> 读一下 `wiki/_schema.md` 和 `CLAUDE.md`，然后按 ingest 协议把我放进 `wiki/raw/` 的文件摄入到 wiki 里。
+> 读一下 `wiki/_schema.md`、`wiki/_protocols.md` 和 `CLAUDE.md`，然后按 ingest 协议把我放进 `wiki/raw/` 的文件摄入到 wiki 里。
 
 ---
 
@@ -160,7 +160,7 @@ cp CLAUDE.md ../my-project/CLAUDE.md
 Copy-Item .\CLAUDE.md ..\my-project\CLAUDE.md
 ```
 
-如果项目**已经有**`CLAUDE.md`，不要覆盖。把本仓库里的协议内容手动合并进去（或者用上面的一键安装脚本，它会自动 append）。
+如果项目**已经有**`CLAUDE.md`，不要覆盖。推荐用上面的一键安装脚本：它会把完整 wiki 协议写入 `wiki/_protocols.md`，并且只在现有 `CLAUDE.md` 里追加一小段轻量入口。
 
 ### 3. 把第一份原始材料丢进 `raw/`
 
@@ -194,7 +194,7 @@ Claude 接下来会：
 
 > 帮我装这个：https://github.com/Benboerba620/karpathy-claude-wiki/blob/main/INSTALL-FOR-AI.md
 
-Agent 会按 `INSTALL-FOR-AI.md` 里的 6 阶段协议走完整个流程：澄清你的领域、克隆模板、（如果需要）按你的领域定制、合并 `CLAUDE.md`、创建第一个 entity、生成索引、交付。
+Agent 会按 `INSTALL-FOR-AI.md` 里的 6 阶段协议走完整个流程：澄清你的领域、克隆模板、（如果需要）按你的领域定制、写入 `wiki/_protocols.md`、轻量接入或复制 `CLAUDE.md`、创建第一个 entity、生成索引、交付。
 
 ---
 
@@ -306,7 +306,7 @@ cd path\to\karpathy-claude-wiki
 powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
 ```
 
-This single command copies `wiki/`, copies `scripts/wiki_index.py`, sets up `CLAUDE.md`, scaffolds your first trackable entity (here `AAPL` — replace with any ticker / book / person), and generates the index + lint report.
+This single command copies `wiki/`, copies `scripts/wiki_index.py`, sets up `CLAUDE.md` (or adds only a lightweight entry if one already exists), writes the full wiki protocol to `wiki/_protocols.md`, scaffolds your first trackable entity (here `AAPL` — replace with any ticker / book / person), and generates the index + lint report.
 
 No project directory yet? Point `-TargetDir` at a new empty folder:
 
@@ -316,7 +316,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 
 ### 4. Open Claude Code and say:
 
-> Read `wiki/_schema.md` and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol.
+> Read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol.
 
 ### Beginner FAQ
 
@@ -357,7 +357,7 @@ macOS ships Python 3 by default; if you've removed it the script will skip the i
 
 ### 3. Open Claude Code and say:
 
-> Read `wiki/_schema.md` and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol.
+> Read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol.
 
 ---
 
@@ -384,7 +384,7 @@ cp CLAUDE.md ../my-project/CLAUDE.md
 Copy-Item .\CLAUDE.md ..\my-project\CLAUDE.md
 ```
 
-If your project **already has** a `CLAUDE.md`, don't overwrite it. Merge the wiki protocols in manually (or use one of the one-shot installers above — they auto-append).
+If your project **already has** a `CLAUDE.md`, don't overwrite it. Prefer one of the one-shot installers above: they write the full wiki protocol to `wiki/_protocols.md` and only add a lightweight entry to your existing `CLAUDE.md`.
 
 ### 3. Drop a first source into `raw/`
 
@@ -418,7 +418,7 @@ Open Claude Code (or Cursor / Cline / any agent that can fetch URLs and write fi
 
 > Install this for me: https://github.com/Benboerba620/karpathy-claude-wiki/blob/main/INSTALL-FOR-AI.md
 
-The agent will follow the 6-phase protocol in `INSTALL-FOR-AI.md`: clarify your domain, clone the template, customize for your domain (if needed), merge `CLAUDE.md`, scaffold your first entity, generate the index, and hand off.
+The agent will follow the 6-phase protocol in `INSTALL-FOR-AI.md`: clarify your domain, clone the template, customize for your domain (if needed), write `wiki/_protocols.md`, lightly integrate or copy `CLAUDE.md`, scaffold your first entity, generate the index, and hand off.
 
 ---
 
