@@ -9,7 +9,7 @@
 >
 > **状态**：空模板。你负责放资料、提问题；LLM 负责整理、交叉引用、回写和持续维护。
 
-**Last updated**：`2026-04-08`
+**Last updated**：`2026-04-09`
 
 **直接按你的情况选一条路：**
 
@@ -22,7 +22,8 @@
 
 ## 最近更新
 
-- `2026-04-08`：新增 `python scripts/wiki_index.py --report`，生成 `wiki/_attention.md` 注意力 / 链接结构报告
+- `2026-04-09`：模板默认改为干净起点，移除了 `EXAMPLE` 页面、`tracker.md` / `notes.md` 模板和默认提交的生成文件
+- `2026-04-09`：修复 bash 安装器两个实际 bug，并统一三端安装器的 `_protocols.md` / `CLAUDE.md` 行为
 - `2026-04-08`：修复已有项目 `CLAUDE.md` 被整段协议撑长的问题，改为把完整协议写入 `wiki/_protocols.md`，主 `CLAUDE.md` 只保留轻量入口
 - `2026-04-08`：新增 GitHub Actions `Wiki Lint`，提交和 PR 会自动检查 wiki 健康状态
 - `2026-04-08`：新增 `scripts/install_wiki.ps1`，Windows 小白用户可一键安装
@@ -83,7 +84,7 @@ cd 你的项目路径\karpathy-claude-wiki
 powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
 ```
 
-这一条命令会自动帮你：复制 `wiki/`、复制 `scripts/wiki_index.py`、处理 `CLAUDE.md`（已有文件时只追加轻量入口，并把完整 wiki 协议写入 `wiki/_protocols.md`）、创建第一个可跟踪的 entity（这里是 `AAPL`，你可以换成任意股票代码 / 书名 / 人名）、生成索引并跑 lint。
+这一条命令会自动帮你：复制 `wiki/`、复制 `scripts/wiki_index.py`、处理 `CLAUDE.md`（已有文件时只追加轻量入口，并把完整 wiki 协议写入 `wiki/_protocols.md`）、创建第一个可跟踪的 entity（这里是 `AAPL`，你可以换成任意股票代码 / 书名 / 人名），并在 Python 可用时生成索引和跑 lint。
 
 如果你还没有自己的项目目录，把 `-TargetDir` 指到一个全新的空文件夹即可：
 
@@ -100,7 +101,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 - **不懂 Git，能用吗？** 可以，下载 ZIP 解压也行。
 - **不懂 Markdown，能用吗？** 可以，你的工作是"丢文件 + 提问题"，整理交给 AI。
 - **必须先懂 schema / protocol 吗？** 不必。先装起来、跑起来，后面再慢慢看。
-- **没装 Python，会失败吗？** 不一定。安装脚本会尽量继续执行；只是会跳过索引生成，之后装好 Python 再运行 `python scripts/wiki_index.py` 即可。
+- **没装 Python，会失败吗？** 不一定。安装脚本会继续完成；之后装好 Python 再运行 `python scripts/wiki_index.py` 和 `python scripts/wiki_index.py --lint` 即可。
 - **只想先试试，不想污染现有项目？** 把 `-TargetDir` 指到一个全新的空文件夹。
 
 ---
@@ -130,7 +131,7 @@ bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
 - `--force`：如果目标目录已经有 wiki，覆盖
 - `--skip-index`：跳过最后的索引 + lint
 
-macOS 默认装了 Python 3，如果你之前删过，脚本会优雅跳过索引那一步，提醒你之后手动跑。
+macOS 默认装了 Python 3；如果缺失或不可用，脚本仍会完成安装，并提醒你之后手动运行索引和 lint。
 
 ### 3. 打开 Claude Code，对它说
 
@@ -247,7 +248,8 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 
 ## Recent Updates
 
-- `2026-04-08`: Added `python scripts/wiki_index.py --report` to generate the attention / link-graph report in `wiki/_attention.md`
+- `2026-04-09`: Switched the template to a clean-slate default by removing shipped `EXAMPLE` pages, `tracker.md` / `notes.md` scaffolds, and committed generated files
+- `2026-04-09`: Fixed two real bash-installer bugs and aligned PowerShell / bash installer behaviour around `_protocols.md` and lightweight `CLAUDE.md` integration
 - `2026-04-08`: Added GitHub Actions `Wiki Lint` for automatic wiki health checks on pushes and PRs
 - `2026-04-08`: Added `scripts/install_wiki.ps1` for beginner-friendly Windows setup
 - `2026-04-08`: Improved README routing so first-time visitors can pick the right install path faster

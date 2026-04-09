@@ -1,6 +1,15 @@
-﻿# 更新日志
+# 更新日志
 
 这里记录 `karpathy-claude-wiki` 的重要更新。
+
+## 2026-04-09
+
+- 清理模板默认内容：移除 `EXAMPLE` 页面、`tracker.md` / `notes.md` 模板、`decisions/README.md` 以及默认提交的生成文件
+- 对齐 Windows / macOS / Linux 安装器：两者都会写入 `wiki/_protocols.md`，已有 `CLAUDE.md` 时只追加轻量入口
+- 修复安装器在检测到 Python 但不可运行时直接中断的问题，改为提示后继续安装
+- 修复 bash 安装器的两个实际 bug：`wiki_root` 未绑定变量，以及协议提取对破折号字符过于脆弱
+- 收紧 `scripts/wiki_index.py` 的排除规则，避免把 `_template.md` 和 `decisions/README.md` 当成真实内容；同时修复 `--report` 标题阈值显示
+- 同步 README 与 AI 安装协议，明确生成文件是按需生成、没有 Python 时安装仍会完成
 
 ## 2026-04-08
 
