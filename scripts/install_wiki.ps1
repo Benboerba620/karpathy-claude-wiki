@@ -33,13 +33,12 @@ function Write-Utf8File {
 function Get-ProtocolBody {
     param([string]$TemplateText)
 
-    $marker = '## Protocol 1 — Ingest'
-    $start = $TemplateText.IndexOf($marker)
-    if ($start -lt 0) {
-        throw "模板 CLAUDE.md 中未找到 '$marker'"
+    $match = [regex]::Match($TemplateText, '(?ms)^## Protocol 1 .*')
+    if (-not $match.Success) {
+        throw 'Could not find Protocol 1 block in template CLAUDE.md'
     }
 
-    return $TemplateText.Substring($start).Trim()
+    return $match.Value.Trim()
 }
 
 function Write-ProtocolFile {
@@ -71,7 +70,7 @@ $body
 "@
 
     Write-Utf8File -Path $protocolPath -Content ($content.Trim() + "`r`n")
-    Write-Step "已写入 wiki 协议文件: $protocolPath"
+    Write-Step "Wrote wiki protocol file: $protocolPath"
 }
 
 function Merge-ClaudeMd {
@@ -83,14 +82,14 @@ function Merge-ClaudeMd {
 
     if (-not (Test-Path $TargetPath)) {
         Copy-Item $TemplatePath $TargetPath -Force
-        Write-Step '已复制完整 CLAUDE.md 到目标项目根目录'
+        Write-Step 'Copied full CLAUDE.md to target project root'
         return
     }
 
     $existing = Get-Content -Raw -Encoding UTF8 $TargetPath
     $sectionHeader = '## Wiki Protocols (karpathy-claude-wiki)'
     if ($existing.Contains($sectionHeader)) {
-        Write-Step '目标项目已包含 wiki 轻量接入段，跳过 CLAUDE.md 追加'
+        Write-Step 'Target project already contains the lightweight wiki section; skipping append'
         return
     }
 
@@ -109,7 +108,7 @@ If the wiki protocol conflicts with project-specific instructions above, surface
 
     $merged = $existing.TrimEnd() + "`r`n`r`n" + $lightweightSection.Trim() + "`r`n"
     Write-Utf8File -Path $TargetPath -Content $merged
-    Write-Step '已向现有 CLAUDE.md 追加轻量 wiki 接入段'
+    Write-Step 'Appended lightweight wiki integration to existing CLAUDE.md'
 }
 
 function New-FirstEntity {
@@ -124,7 +123,7 @@ function New-FirstEntity {
 
     $templatePath = Join-Path $WikiRoot 'entities\_template\profile.md'
     if (-not (Test-Path $templatePath)) {
-        throw '未找到 entity 模板 profile.md'
+        throw 'Entity template profile.md was not found'
     }
 
     $entityDir = Join-Path $WikiRoot (Join-Path 'entities' $Name)
@@ -148,7 +147,7 @@ function New-FirstEntity {
     $content = $content.Replace('- (questions you haven''t answered yet)', '- ')
 
     Write-Utf8File -Path $entityProfile -Content $content
-    Write-Step "已创建首个 entity: $entityProfile"
+    Write-Step "Created first entity: $entityProfile"
 }
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -156,7 +155,7 @@ $resolvedTargetDir = [System.IO.Path]::GetFullPath($TargetDir)
 $resolvedRepoRoot = [System.IO.Path]::GetFullPath($repoRoot)
 
 if ($resolvedTargetDir -eq $resolvedRepoRoot) {
-    throw 'TargetDir 不能直接等于模板仓库本身，请传入你的项目目录。'
+    throw 'TargetDir cannot be the template repository itself. Pass your own project directory.'
 }
 
 if (-not (Test-Path $resolvedTargetDir)) {
@@ -171,25 +170,25 @@ $targetScriptsDir = Join-Path $resolvedTargetDir 'scripts'
 $targetIndexScript = Join-Path $targetScriptsDir 'wiki_index.py'
 $targetClaude = Join-Path $resolvedTargetDir 'CLAUDE.md'
 
-if (-not (Test-Path $sourceWiki)) { throw '未找到模板 wiki/ 目录' }
-if (-not (Test-Path $sourceClaude)) { throw '未找到模板 CLAUDE.md' }
-if (-not (Test-Path $sourceIndexScript)) { throw '未找到模板 scripts/wiki_index.py' }
+if (-not (Test-Path $sourceWiki)) { throw 'Template wiki/ directory was not found' }
+if (-not (Test-Path $sourceClaude)) { throw 'Template CLAUDE.md was not found' }
+if (-not (Test-Path $sourceIndexScript)) { throw 'Template scripts/wiki_index.py was not found' }
 
 if (Test-Path $targetWiki) {
     if (-not $Force) {
-        throw "目标目录已存在 $targetWiki。若确认覆盖，请加 -Force。"
+        throw "Target wiki directory already exists at $targetWiki. Pass -Force to overwrite it."
     }
     Remove-Item $targetWiki -Recurse -Force
 }
 
-Write-Step "复制 wiki 模板到 $targetWiki"
+Write-Step "Copying wiki template to $targetWiki"
 Copy-Item $sourceWiki $targetWiki -Recurse -Force
 
 if (-not (Test-Path $targetScriptsDir)) {
     New-Item -ItemType Directory -Path $targetScriptsDir -Force | Out-Null
 }
 Copy-Item $sourceIndexScript $targetIndexScript -Force
-Write-Step '已复制 scripts/wiki_index.py'
+Write-Step 'Copied scripts/wiki_index.py'
 
 Write-ProtocolFile -TemplatePath $sourceClaude -WikiRoot $targetWiki -WikiDirName $WikiDirName
 Merge-ClaudeMd -TemplatePath $sourceClaude -TargetPath $targetClaude -WikiDirName $WikiDirName
@@ -198,16 +197,22 @@ New-FirstEntity -WikiRoot $targetWiki -Name $EntityName
 if (-not $SkipIndex) {
     $python = Get-Command python -ErrorAction SilentlyContinue
     if ($python) {
-        Write-Step '正在生成 wiki 索引'
+        Write-Step 'Generating wiki index'
         Push-Location $resolvedTargetDir
         try {
-            & python .\scripts\wiki_index.py
-            if ($LASTEXITCODE -ne 0) {
-                throw 'wiki_index.py 执行失败'
+            try {
+                & $python.Source .\scripts\wiki_index.py
+                if ($LASTEXITCODE -ne 0) {
+                    throw 'wiki_index.py failed'
+                }
+
+                & $python.Source .\scripts\wiki_index.py --lint
+                if ($LASTEXITCODE -ne 0) {
+                    throw 'wiki lint failed'
+                }
             }
-            & python .\scripts\wiki_index.py --lint
-            if ($LASTEXITCODE -ne 0) {
-                throw 'wiki lint 检查失败'
+            catch {
+                Write-Warning "python was detected, but index generation or lint failed. Installation still completed. Run 'python scripts/wiki_index.py' and 'python scripts/wiki_index.py --lint' later. Details: $($_.Exception.Message)"
             }
         }
         finally {
@@ -215,14 +220,14 @@ if (-not $SkipIndex) {
         }
     }
     else {
-        Write-Warning '未检测到 python，已跳过 _index.json / overview.md 生成。安装 Python 后请手动运行: python scripts/wiki_index.py'
+        Write-Warning "python was not detected; skipped _index.json / overview.md generation. Installation still completed. Run 'python scripts/wiki_index.py' later after Python is available."
     }
 }
 
 $schemaPath = "$WikiDirName/_schema.md"
 $protocolsPath = "$WikiDirName/_protocols.md"
 Write-Host ''
-Write-Host '安装完成。下一步：' -ForegroundColor Green
-Write-Host "1. 把原始文件放进 $WikiDirName\raw\articles 或 papers 等目录" -ForegroundColor Green
-Write-Host '2. 打开 Claude Code' -ForegroundColor Green
-Write-Host "3. 对它说：读一下 '$schemaPath'、'$protocolsPath' 和 'CLAUDE.md'，然后按 ingest 协议把我刚放进去的文件摄入到 wiki 里。" -ForegroundColor Green
+Write-Host 'Installation complete. Next steps:' -ForegroundColor Green
+Write-Host "1. Drop source files into $WikiDirName\raw\articles or papers and other raw folders" -ForegroundColor Green
+Write-Host '2. Open Claude Code' -ForegroundColor Green
+Write-Host "3. Tell it: read '$schemaPath', '$protocolsPath', and 'CLAUDE.md', then ingest the file I just dropped following the protocol." -ForegroundColor Green

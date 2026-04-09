@@ -47,7 +47,3 @@ confidence: low
 ## Open questions
 
 - (questions you haven't answered yet)
-
----
-
-_See also: `tracker.md` for evolving evidence, `notes.md` for dated research notes._

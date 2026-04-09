@@ -29,9 +29,7 @@ wiki/
 ├── entities/           # things you track (companies, people, books, projects)
 │   └── {NAME}/
 │       ├── profile.md  # main page (judgment, related network)
-│       ├── tracker.md  # evolving evidence
-│       ├── notes.md    # dated research notes
-│       └── ... (optional: news.md, model.md, etc.)
+│       └── ...         # optional sub-pages when one file stops being enough
 ├── concepts/           # themes, frameworks, ideas
 │   └── {THEME}.md      # OR {THEME}/{THEME}.md for sub-pages
 ├── explorations/       # crystallized query answers
@@ -103,7 +101,7 @@ When the user gives you a new source:
 
 1. Move the original to `raw/<category>/` (immutable archive)
 2. Create a `sources/<date>-<slug>.md` with structured summary
-3. Identify entities & concepts mentioned; update or (with user confirmation) create those pages
+3. Identify entities & concepts mentioned; update the relevant profile pages (and any optional sub-pages if the user uses them), or create those pages with user confirmation
 4. Maintain bidirectional `[[wikilinks]]`
 5. Append a row to `_log.md`
 6. Run lint: `python scripts/wiki_index.py --lint`
@@ -166,7 +164,7 @@ You can run all three domains in parallel — just create sibling top-level dirs
 
 ## Index generation
 
-Run `python scripts/wiki_index.py` (no args) to regenerate `_index.json` and `overview.md`. Run `--lint` for health check, `--search "query"` for ad-hoc search, `--stats` for stats.
+Run `python scripts/wiki_index.py` (no args) to regenerate `_index.json` and `overview.md`. Run `--lint` for health check, `--search "query"` for ad-hoc search, `--stats` for stats, and `--report` to regenerate `_attention.md`.
 
 ---
 

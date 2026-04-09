@@ -33,8 +33,9 @@ INDEX_JSON = WIKI_DIR / "_index.json"
 OVERVIEW_MD = WIKI_DIR / "overview.md"
 
 # Files / dirs to exclude from indexing
-EXCLUDED_FILES = {"_schema.md", "_log.md", "_index.json", "overview.md", "inbox-digest.md", "_attention.md", "_protocols.md"}
+EXCLUDED_FILES = {"_schema.md", "_log.md", "_index.json", "overview.md", "inbox-digest.md", "_attention.md", "_protocols.md", "_template.md"}
 EXCLUDED_DIRS = {"raw", "_template"}
+EXCLUDED_PATHS = {"decisions/README.md"}
 
 # Files to skip in lint (templates and examples have intentional placeholder wikilinks)
 LINT_SKIP_PATTERNS = ("_template", "EXAMPLE")
@@ -187,6 +188,8 @@ def iter_pages():
         rel = path.relative_to(WIKI_DIR)
         if path.name in EXCLUDED_FILES:
             continue
+        if rel.as_posix() in EXCLUDED_PATHS:
+            continue
         if any(part in EXCLUDED_DIRS for part in rel.parts):
             continue
         try:
@@ -289,12 +292,8 @@ def display_title(page: dict) -> str:
 
 
 def is_skipped_for_report(page: dict) -> bool:
-    """Skip templates from report metrics — they're scaffolding, never real content.
-
-    EXAMPLE pages are kept: they're demo content the template ships so users
-    see what a populated wiki looks like.
-    """
-    return "_template" in page["path"]
+    """Skip scaffolding pages from report metrics."""
+    return "_template" in page["path"] or page["path"] in EXCLUDED_PATHS
 
 
 def cmd_report():
@@ -463,7 +462,7 @@ def write_attention_md(report: dict) -> None:
 
     lines += [
         "",
-        f"## Hub sources (fan-out ≥{REPORT_HUB_FAN_OUT}, spans ≥{REPORT_HUB_TYPE_SPAN} types)",
+        f"## Hub sources (fan-out >= {REPORT_HUB_FAN_OUT}, spans >= {REPORT_HUB_TYPE_SPAN} types)",
         "",
         "> One source connecting many entities/concepts — likely a survey-style report",
         "> or multi-company interview worth backlinking from each touched page.",

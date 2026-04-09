@@ -307,7 +307,7 @@ cd path\to\karpathy-claude-wiki
 powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
 ```
 
-This single command copies `wiki/`, copies `scripts/wiki_index.py`, sets up `CLAUDE.md` (or adds only a lightweight entry if one already exists), writes the full wiki protocol to `wiki/_protocols.md`, scaffolds your first trackable entity (here `AAPL` — replace with any ticker / book / person), and generates the index + lint report.
+This single command copies `wiki/`, copies `scripts/wiki_index.py`, sets up `CLAUDE.md` (or adds only a lightweight entry if one already exists), writes the full wiki protocol to `wiki/_protocols.md`, scaffolds your first trackable entity (here `AAPL` — replace with any ticker / book / person), and generates the index + runs lint when Python is available.
 
 No project directory yet? Point `-TargetDir` at a new empty folder:
 
@@ -324,7 +324,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 - **No git? Can I still use it?** Yes — the ZIP download works.
 - **No Markdown experience?** Fine. Your job is "drop files, ask questions"; the AI does the formatting.
 - **Do I need to understand schema / protocol first?** No. Install it, run it, learn as you go.
-- **No Python?** The installer will gracefully skip the index step. Install Python later, then run `python scripts/wiki_index.py`.
+- **No Python?** The installer will still finish. Install Python later, then run `python scripts/wiki_index.py` and `python scripts/wiki_index.py --lint`.
 - **I just want to try it without polluting an existing project.** Point `-TargetDir` at a new empty folder.
 
 ---
@@ -354,7 +354,7 @@ Flags:
 - `--force` — overwrite an existing wiki at the target
 - `--skip-index` — skip the final index + lint step
 
-macOS ships Python 3 by default; if you've removed it the script will skip the index step gracefully and tell you to run it later.
+macOS ships Python 3 by default; if it is missing or unusable, the installer still finishes and tells you which commands to run later.
 
 ### 3. Open Claude Code and say:
 

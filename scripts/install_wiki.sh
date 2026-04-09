@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# install_wiki.sh — karpathy-claude-wiki one-shot installer (macOS / Linux)
+# install_wiki.sh - karpathy-claude-wiki one-shot installer (macOS / Linux)
 #
 # Equivalent to scripts/install_wiki.ps1 (Windows PowerShell). Behaviour parity:
 #  - copies wiki/ and scripts/wiki_index.py into the target project
-#  - merges CLAUDE.md (or appends protocols if one already exists)
+#  - writes wiki/_protocols.md and lightly merges CLAUDE.md if one already exists
 #  - optionally scaffolds a first entity from the template
-#  - generates wiki index + lint (gracefully skips if no python)
+#  - generates wiki index + lint (gracefully skips if Python is unavailable or fails)
 #
 # Usage:
 #   bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
@@ -44,19 +44,18 @@ EOF
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --target-dir)     TARGET_DIR="${2:-}";    shift 2;;
-    --wiki-dir-name)  WIKI_DIR_NAME="${2:-}"; shift 2;;
-    --entity-name)    ENTITY_NAME="${2:-}";   shift 2;;
-    --force)          FORCE=1;                shift;;
-    --skip-index)     SKIP_INDEX=1;           shift;;
-    -h|--help)        usage; exit 0;;
-    *) die "Unknown argument: $1 (run with --help)";;
+    --target-dir)     TARGET_DIR="${2:-}";    shift 2 ;;
+    --wiki-dir-name)  WIKI_DIR_NAME="${2:-}"; shift 2 ;;
+    --entity-name)    ENTITY_NAME="${2:-}";   shift 2 ;;
+    --force)          FORCE=1;                 shift ;;
+    --skip-index)     SKIP_INDEX=1;            shift ;;
+    -h|--help)        usage; exit 0 ;;
+    *) die "Unknown argument: $1 (run with --help)" ;;
   esac
 done
 
 [[ -z "$TARGET_DIR" ]] && { usage; echo; die "--target-dir is required"; }
 
-# resolve paths
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 
@@ -93,9 +92,45 @@ mkdir -p "$target_scripts_dir"
 cp "$source_index_script" "$target_index_script"
 print_step "Copied scripts/wiki_index.py"
 
-# ----- merge CLAUDE.md -----
+write_protocol_file() {
+  local template="$1" wiki_root="$2" wiki_dir_name="$3"
+  local out="$wiki_root/_protocols.md"
+  local today body
+  today="$(date +%Y-%m-%d)"
+
+  body="$({
+    perl -0ne '
+      use strict; use warnings; use utf8;
+      if (/^## Protocol 1 .*$/ms) {
+        my $body = $&;
+        $body =~ s/\s+\z//;
+        print $body;
+      } else {
+        die "marker not found in template CLAUDE.md\n";
+      }
+    ' "$template"
+  })" || die "Failed to extract protocol body from template CLAUDE.md"
+
+  cat >"$out" <<EOF
+---
+title: Wiki Protocols
+type: meta
+created: $today
+updated: $today
+---
+
+# Wiki Protocols
+
+> Installed from karpathy-claude-wiki. Read this together with $wiki_dir_name/_schema.md whenever working with the wiki.
+
+$body
+EOF
+
+  print_step "Wrote wiki protocol file: $out"
+}
+
 merge_claude_md() {
-  local template="$1" target="$2"
+  local template="$1" target="$2" wiki_dir_name="$3"
 
   if [[ ! -f "$target" ]]; then
     cp "$template" "$target"
@@ -103,53 +138,26 @@ merge_claude_md() {
     return
   fi
 
-  if grep -qF '## Wiki Protocols (from karpathy-claude-wiki)' "$target"; then
+  if grep -qF '## Wiki Protocols (karpathy-claude-wiki)' "$target"; then
     print_step "Target CLAUDE.md already contains karpathy-claude-wiki protocols, skipping append"
     return
   fi
 
-  perl -e '
-    use strict; use warnings;
-    use utf8;
-    binmode STDOUT, ":utf8";
-    my ($tpl_path, $tgt_path) = @ARGV;
+  cat >>"$target" <<EOF
 
-    open(my $tf, "<:utf8", $tpl_path) or die "open template: $!";
-    local $/; my $tpl = <$tf>; close $tf;
+## Wiki Protocols (karpathy-claude-wiki)
 
-    my $marker = "## Protocol 1 \x{2014} Ingest";  # em-dash
-    my $idx = index($tpl, $marker);
-    die "marker not found in template CLAUDE.md\n" if $idx < 0;
+When working with `$wiki_dir_name/`, first read:
+- `$wiki_dir_name/_schema.md`
+- `$wiki_dir_name/_protocols.md`
 
-    my $trimmed = substr($tpl, $idx);
-    $trimmed =~ s/\s+\z//;
+Use those files for ingest, cross-reference, contradiction scan, crystallization, and periodic wiki maintenance.
+If the wiki protocol conflicts with project-specific instructions above, surface the conflict and ask the user which rule should win.
+EOF
 
-    # shift H2..H5 down by one level; leave H6 / H1 alone
-    my @out;
-    for my $line (split /\r?\n/, $trimmed) {
-      if ($line =~ /^(#{2,5})\s+/) { push @out, "#" . $line; }
-      else { push @out, $line; }
-    }
-    my $shifted = join("\n", @out);
-
-    open(my $gf, "<:utf8", $tgt_path) or die "open target: $!";
-    my $existing = <$gf>; close $gf;
-    $existing =~ s/\s+\z//;
-
-    my $merged = $existing
-               . "\n\n## Wiki Protocols (from karpathy-claude-wiki)\n\n"
-               . $shifted . "\n";
-
-    open(my $of, ">:utf8", $tgt_path) or die "write target: $!";
-    print $of $merged; close $of;
-  ' "$template" "$target"
-
-  print_step "Appended wiki protocols to existing CLAUDE.md"
+  print_step "Appended lightweight wiki entry to existing CLAUDE.md"
 }
 
-merge_claude_md "$source_claude" "$target_claude"
-
-# ----- scaffold first entity -----
 create_first_entity() {
   local wiki_root="$1" name="$2"
   [[ -z "$name" ]] && return
@@ -172,20 +180,15 @@ create_first_entity() {
     open(my $f, "<:utf8", $src) or die "open: $!";
     local $/; my $c = <$f>; close $f;
 
-    # NOTE: \Q...\E does NOT interpret \x{} or \x escapes inside the literal —
-    # we have to interpolate the special characters via Perl variables.
-    my $em  = "\x{2014}";  # em-dash
-    my $apo = "\x{27}";    # apostrophe
-
     $c =~ s/\Q<Entity name>\E/$name/g;
     $c =~ s/\QYYYY-MM-DD\E/$today/g;
     $c =~ s/\Q- Related entities: [[entity1]], [[entity2]]\E/- Related entities:/g;
     $c =~ s/\Q- Related concepts: [[concept1]], [[concept2]]\E/- Related concepts:/g;
     $c =~ s|\Q- Related sources: [[sources/source1]], [[sources/source2]]\E|- Related sources:|g;
-    $c =~ s/\Q- Variable 1 ${em} why it matters, how to measure\E/- /g;
-    $c =~ s/\Q- Variable 2 ${em} why it matters, how to measure\E/- /g;
-    $c =~ s/\Q- Variable 3 ${em} why it matters, how to measure\E/- /g;
-    $c =~ s/\Q- (questions you haven${apo}t answered yet)\E/- /g;
+    $c =~ s/\Q- Variable 1 — why it matters, how to measure\E/- /g;
+    $c =~ s/\Q- Variable 2 — why it matters, how to measure\E/- /g;
+    $c =~ s/\Q- Variable 3 — why it matters, how to measure\E/- /g;
+    $c =~ s/\Q- (questions you haven\x{27}t answered yet)\E/- /g;
 
     open(my $o, ">:utf8", $dst) or die "write: $!";
     print $o $c; close $o;
@@ -194,22 +197,27 @@ create_first_entity() {
   print_step "Created first entity: $entity_profile"
 }
 
+write_protocol_file "$source_claude" "$target_wiki" "$WIKI_DIR_NAME"
+merge_claude_md "$source_claude" "$target_claude" "$WIKI_DIR_NAME"
 create_first_entity "$target_wiki" "$ENTITY_NAME"
 
-# ----- run index + lint -----
 if [[ $SKIP_INDEX -eq 0 ]]; then
   python_bin=""
-  if   command -v python3 >/dev/null 2>&1; then python_bin="python3"
-  elif command -v python  >/dev/null 2>&1; then python_bin="python"
+  if command -v python3 >/dev/null 2>&1; then
+    python_bin="python3"
+  elif command -v python >/dev/null 2>&1; then
+    python_bin="python"
   fi
 
   if [[ -n "$python_bin" ]]; then
     print_step "Generating wiki index"
-    (cd "$target_dir_abs" && "$python_bin" ./scripts/wiki_index.py)
-    (cd "$target_dir_abs" && "$python_bin" ./scripts/wiki_index.py --lint) \
-      || die "wiki lint failed"
+    if ! (cd "$target_dir_abs" && "$python_bin" ./scripts/wiki_index.py); then
+      print_warn "python was detected, but index generation failed. The wiki was still installed; run '$python_bin scripts/wiki_index.py' later."
+    elif ! (cd "$target_dir_abs" && "$python_bin" ./scripts/wiki_index.py --lint); then
+      print_warn "python was detected, but wiki lint failed. The wiki was still installed; run '$python_bin scripts/wiki_index.py --lint' after reviewing the files."
+    fi
   else
-    print_warn "python not detected; skipped index generation. Install Python 3 then run: python3 scripts/wiki_index.py"
+    print_warn "python not detected; skipped index generation. The wiki was still installed; install Python 3 then run: python3 scripts/wiki_index.py"
   fi
 fi
 
@@ -217,4 +225,4 @@ echo
 print_done "Installation complete. Next steps:"
 print_done "1. Drop a source file into $WIKI_DIR_NAME/raw/articles/ (or papers/, books/, podcasts/, conversations/)"
 print_done "2. Open Claude Code in $target_dir_abs"
-print_done "3. Tell it: \"Read $WIKI_DIR_NAME/_schema.md and CLAUDE.md, then ingest the file I just dropped following the ingest protocol.\""
+print_done "3. Tell it: \"Read $WIKI_DIR_NAME/_schema.md, $WIKI_DIR_NAME/_protocols.md, and CLAUDE.md, then ingest the file I just dropped following the ingest protocol.\""

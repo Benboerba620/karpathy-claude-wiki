@@ -6,7 +6,7 @@ updated: 2026-04-07
 
 # Rules
 
-> Patterns confirmed by 3+ instances. The LLM checks this file before research and flags conflicts. Promoted from `tracker.md` evidence after the periodic rule-promotion job.
+> Patterns confirmed by 3+ instances. The LLM checks this file before research and flags conflicts. Promoted from repeated evidence across entity pages after the periodic rule-promotion job.
 
 ## Active Rules
 

@@ -48,7 +48,7 @@ It highlights:
 - lonely recent pages with zero inbound links
 - concepts ranked by source-reference count
 
-This is a minimal version (~200 lines). The original it was distilled from is ~700 lines and has domain-specific extensions for entity sub-pages and concept directories. Customize freely.
+This is a minimal version (~200 lines). The original it was distilled from is ~700 lines and has domain-specific extensions for larger wiki structures. Customize freely.
 
 ## What you might add later
 
@@ -56,7 +56,7 @@ Common additions, in order of usefulness:
 
 1. **`fix_broken_links.py`** — auto-repair common wikilink format issues (display text vs path)
 2. **`split_sources.py`** — split a long accumulated source file into individual `sources/*.md` pages
-3. **`promote_rules.py`** — scan tracker pages for 3+ confirmation patterns, suggest rule promotions
+3. **`promote_rules.py`** — scan entity pages for repeated confirmation patterns, suggest rule promotions
 4. **`verify_predictions.py`** — for predictions whose target date has passed, ask the LLM to verify and update
 
 None of these are essential. Build them when the pain shows up.

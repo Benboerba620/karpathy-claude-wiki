@@ -46,7 +46,7 @@ If you're an AI agent reading this: **these protocols are non-negotiable**. Foll
    ```
 
 3. **Extract entities & concepts**. Identify every entity and concept the source mentions. For each:
-   - **If it exists** in `wiki/entities/` or `wiki/concepts/`: update the relevant page (add to evidence, update tracker, refresh confidence). Use `[[wikilinks]]` to link back to the new source.
+   - **If it exists** in `wiki/entities/` or `wiki/concepts/`: update the relevant page (usually `profile.md`, plus any optional sub-pages the user actually uses). Use `[[wikilinks]]` to link back to the new source.
    - **If it doesn't exist**: ASK the user before creating. Do not auto-create entities. The user's curation matters.
 
 4. **Append to log**. Add a row to `wiki/_log.md`:
@@ -84,7 +84,7 @@ If you're an AI agent reading this: **these protocols are non-negotiable**. Foll
 
 2. **Check `rules.md`**. Does the new judgment violate an active rule? Same protocol: surface, ask, then write.
 
-3. **Check related pages**. If the new judgment is about entity X, scan X's existing tracker / notes / profile for conflicting prior judgments. If found, surface them.
+3. **Check related pages**. If the new judgment is about entity X, scan X's existing entity pages (profile plus any optional sub-pages) for conflicting prior judgments. If found, surface them.
 
 4. **Format the surfacing**. Use this exact template:
    ```
@@ -153,7 +153,7 @@ Run `python scripts/wiki_index.py --lint`. It will surface:
 For each `concept` page that has accumulated 3+ new sources since last compile, regenerate the `## 综述 / Synthesis` section by reading all linked sources.
 
 ### Promote rules
-Scan tracker pages for patterns confirmed 3+ times. Suggest promoting them to `rules.md` as a new entry.
+Scan entity pages for patterns confirmed 3+ times. Suggest promoting them to `rules.md` as a new entry.
 
 ### Verify predictions
 Scan `sources/*.md` for `## Verifiable Predictions` tables. For predictions whose target date has passed:

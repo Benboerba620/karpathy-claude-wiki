@@ -107,12 +107,9 @@ If the wiki protocol conflicts with project-specific instructions above, surface
 2. **清理临时目录**：`rm -rf .karpathy-tmp`（PowerShell：`Remove-Item .\.karpathy-tmp -Recurse -Force`）。
 3. 给用户展示新建的 `wiki/` 目录树。
 4. 确认 `CLAUDE.md` 轻量接入或复制成功，并展示 `wiki/_protocols.md` 已写入。
-5. **告知 EXAMPLE 占位文件**（**不要自动删，让用户自己决定**）：
-   > "模板里有几个 `EXAMPLE-*.md` 和 `EXAMPLE/` 文件展示页面结构。它们对 ingest 无害（Claude 会识别为占位并跳过）。要完全干净的起点：
-   > ```bash
-   > rm wiki/*/EXAMPLE-*.md 2>/dev/null; rm -rf wiki/*/EXAMPLE/ 2>/dev/null
-   > ```
-   > 不清也没事。"
+5. **告知用户生成文件是按需生成的**：
+   > "模板现在默认是干净起点。`_index.json`、`overview.md`、`_attention.md` 都是运行脚本后才生成的文件，不是初始内容；没有它们也可以先正常开始使用。"
+
 
 6. 对用户说，原文如下：
    > "Wiki 安装完成。第一次 ingest：把一个文件放进 `wiki/raw/<category>/`（`articles` / `papers` / `books` / `podcasts` / `conversations`），然后说 '按协议摄入这个'。第一次 ingest 前，先确保 agent 读过 `wiki/_schema.md`、`wiki/_protocols.md` 和 `CLAUDE.md`。"
@@ -217,16 +214,13 @@ Copy the template to the new location and fill in basic frontmatter (title, crea
 
 ## Phase 6 — Verify and hand off
 
-1. **Generate the index**: `python scripts/wiki_index.py` (no args). This produces `wiki/_index.json` and `wiki/overview.md`. **Without these, the wiki has no index and downstream lint/search commands won't work.** If python isn't available, tell the user to install it and run this command later.
+1. **Generate the index**: `python scripts/wiki_index.py` (no args). This produces `wiki/_index.json` and `wiki/overview.md` for navigation. If python isn't available, tell the user the wiki still works and they can run this command later.
 2. **Cleanup**: `rm -rf .karpathy-tmp` (PowerShell: `Remove-Item .\.karpathy-tmp -Recurse -Force`).
 3. Show the user a tree of the new `wiki/` directory.
 4. Confirm `CLAUDE.md` copy/lightweight integration worked, and show that `wiki/_protocols.md` was written.
-5. **Tell the user about EXAMPLE placeholder files** (do NOT auto-delete — let them decide):
-   > "The template ships with `EXAMPLE-*.md` and `EXAMPLE/` files that show what real entries look like. They're harmless (Claude recognizes them as placeholders and skips them on ingest). To get a fully clean slate:
-   > ```bash
-   > rm wiki/*/EXAMPLE-*.md 2>/dev/null; rm -rf wiki/*/EXAMPLE/ 2>/dev/null
-   > ```
-   > Leaving them is also fine."
+5. **Tell the user generated files are optional**:
+   > "This template now ships as a clean slate. `_index.json`, `overview.md`, and `_attention.md` are generated files, not starter content. Generate them when you want navigation or structural reports; leaving them absent is fine."
+
 
 6. Tell the user, verbatim:
    > "Wiki installed. To do your first ingest: drop a file into `wiki/raw/<category>/` where `<category>` is one of `articles`, `papers`, `books`, `podcasts`, `conversations`. Then say 'ingest this following the protocol'. Before the first ingest, make sure the agent has read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`."

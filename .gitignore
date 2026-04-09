@@ -36,3 +36,4 @@ wiki/raw/conversations/*
 # Wiki: don't commit your generated index
 wiki/_index.json
 wiki/overview.md
+wiki/_attention.md
