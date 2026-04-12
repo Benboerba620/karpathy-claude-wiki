@@ -2,6 +2,21 @@
 
 这里记录 `karpathy-claude-wiki` 的重要更新。
 
+## 2026-04-12
+
+- 新增 `wiki/explorations/_template.md`：完整的 exploration 模板，包含假设分支、不确定性、数据缺口、行动触发条件
+- 新增 `wiki/decisions/_template.md`：完整的 decision 模板，包含备选方案对比、反转条件、Outcome 回顾区、Lessons → Rules 闭环
+- 增强 `wiki/rules.md`：新增 Rule Lifecycle 段落，写清 `observation → pattern → RULE → under review → retired` 完整路径，Promotion Log 记录所有生命周期事件
+- 升级 `wiki/inbox-digest.md`：从平铺表格改为按周分组，60 天滚动归档到 `inbox-archive.md`
+- 新增 `wiki/inbox-archive.md`：digest 归档文件
+- 新增 `wiki/sources/EXAMPLE-source-summary.md`：source-summary 示例页面
+- 扩展所有 EXAMPLE 文件（entity/concept/exploration）为完整带注释的示例
+- `CLAUDE.md` Protocol 1 新增 Step 5（更新 inbox digest），Protocol 4 改为引用模板文件
+- `wiki/_schema.md` 补充 `tracker` 和 `notes` 为独立 page type，exploration/decision 指向模板
+- `scripts/wiki_index.py` 重构排除逻辑：`SCAFFOLD_SKIP_PATTERNS` 统一处理模板和示例文件
+- 安装脚本 Python 检测加强：`py -3` → `python` → `python3` 顺序尝试
+- CI: GitHub Actions 升级到 v6
+
 ## 2026-04-09
 
 - Fix PowerShell installer detection so the Windows Store `python.exe` alias is treated as "Python unavailable" instead of a real interpreter.

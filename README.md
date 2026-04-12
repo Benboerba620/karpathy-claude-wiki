@@ -9,7 +9,7 @@
 >
 > **状态**：空模板。你负责放资料、提问题；LLM 负责整理、交叉引用、回写和持续维护。
 
-**Last updated**：`2026-04-09`
+**Last updated**：`2026-04-12`
 
 **直接按你的情况选一条路：**
 
@@ -22,12 +22,9 @@
 
 ## 最近更新
 
-- `2026-04-09`：模板默认改为干净起点，移除了 `EXAMPLE` 页面、`tracker.md` / `notes.md` 模板和默认提交的生成文件
-- `2026-04-09`：修复 bash 安装器两个实际 bug，并统一三端安装器的 `_protocols.md` / `CLAUDE.md` 行为
-- `2026-04-08`：修复已有项目 `CLAUDE.md` 被整段协议撑长的问题，改为把完整协议写入 `wiki/_protocols.md`，主 `CLAUDE.md` 只保留轻量入口
-- `2026-04-08`：新增 GitHub Actions `Wiki Lint`，提交和 PR 会自动检查 wiki 健康状态
-- `2026-04-08`：新增 `scripts/install_wiki.ps1`，Windows 小白用户可一键安装
-- `2026-04-08`：优化 `README` 首页导流，第一次来的用户更容易知道该怎么开始
+- `2026-04-12`：新增 exploration / decision 模板文件、rules 生命周期机制、inbox-digest 按周分组 + 归档
+- `2026-04-12`：扩展所有 EXAMPLE 文件为完整带注释的示例，新增 source-summary 示例
+- `2026-04-09`：模板默认改为干净起点；修复 bash 安装器 bug；统一三端安装器行为
 - 完整历史见 [`CHANGELOG.md`](./CHANGELOG.md)
 
 ---
@@ -235,7 +232,7 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 >
 > **Status**: Empty template. You decide what goes in; the LLM handles the bookkeeping.
 
-**Last updated**: `2026-04-08`
+**Last updated**: `2026-04-12`
 
 **Pick the path that matches you:**
 
@@ -248,11 +245,9 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 
 ## Recent Updates
 
-- `2026-04-09`: Switched the template to a clean-slate default by removing shipped `EXAMPLE` pages, `tracker.md` / `notes.md` scaffolds, and committed generated files
-- `2026-04-09`: Fixed two real bash-installer bugs and aligned PowerShell / bash installer behaviour around `_protocols.md` and lightweight `CLAUDE.md` integration
-- `2026-04-08`: Added GitHub Actions `Wiki Lint` for automatic wiki health checks on pushes and PRs
-- `2026-04-08`: Added `scripts/install_wiki.ps1` for beginner-friendly Windows setup
-- `2026-04-08`: Improved README routing so first-time visitors can pick the right install path faster
+- `2026-04-12`: Added exploration / decision template files, rules lifecycle mechanism, weekly-grouped inbox-digest with archive
+- `2026-04-12`: Expanded all EXAMPLE files into fully annotated examples; added source-summary example
+- `2026-04-09`: Clean-slate default template; bash installer bugfixes; unified installer behaviour
 - Full history: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ---
