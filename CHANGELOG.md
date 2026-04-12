@@ -19,8 +19,7 @@
 
 ## 2026-04-09
 
-- Fix PowerShell installer detection so the Windows Store `python.exe` alias is treated as "Python unavailable" instead of a real interpreter.
-
+- 修复 PowerShell 安装器：Windows Store 的 `python.exe` 别名现在被识别为"Python 不可用"，而非真正的解释器
 - 清理模板默认内容：移除 `EXAMPLE` 页面、`tracker.md` / `notes.md` 模板、`decisions/README.md` 以及默认提交的生成文件
 - 对齐 Windows / macOS / Linux 安装器：两者都会写入 `wiki/_protocols.md`，已有 `CLAUDE.md` 时只追加轻量入口
 - 修复安装器在检测到 Python 但不可运行时直接中断的问题，改为提示后继续安装

@@ -22,8 +22,10 @@
 
 ## 最近更新
 
-- `2026-04-12`：新增 exploration / decision 模板文件、rules 生命周期机制、inbox-digest 按周分组 + 归档
-- `2026-04-12`：扩展所有 EXAMPLE 文件为完整带注释的示例，新增 source-summary 示例
+- `2026-04-12`：新增 `explorations/_template.md` 和 `decisions/_template.md`，包含假设分支、备选方案、行动触发条件、Lessons → Rules 闭环
+- `2026-04-12`：`rules.md` 新增 Rule Lifecycle（`observation → pattern → RULE → under review → retired`），Promotion Log 记录所有生命周期事件
+- `2026-04-12`：`inbox-digest.md` 从平铺表格改为按周分组，60 天滚动归档到 `inbox-archive.md`
+- `2026-04-12`：扩展所有 EXAMPLE 文件为完整带注释的示例；新增 source-summary 示例；安装脚本 Python 检测加强；CI 升级到 v6
 - `2026-04-09`：模板默认改为干净起点；修复 bash 安装器 bug；统一三端安装器行为
 - 完整历史见 [`CHANGELOG.md`](./CHANGELOG.md)
 
@@ -245,8 +247,10 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 
 ## Recent Updates
 
-- `2026-04-12`: Added exploration / decision template files, rules lifecycle mechanism, weekly-grouped inbox-digest with archive
-- `2026-04-12`: Expanded all EXAMPLE files into fully annotated examples; added source-summary example
+- `2026-04-12`: Added `explorations/_template.md` and `decisions/_template.md` with hypothesis branches, alternatives, action triggers, and Lessons → Rules feedback loop
+- `2026-04-12`: `rules.md` now has a Rule Lifecycle (`observation → pattern → RULE → under review → retired`) with Promotion Log tracking all lifecycle events
+- `2026-04-12`: `inbox-digest.md` upgraded to weekly grouping with 60-day rolling archive to `inbox-archive.md`
+- `2026-04-12`: Expanded all EXAMPLE files into fully annotated examples; added source-summary example; hardened Python detection in installers; CI upgraded to v6
 - `2026-04-09`: Clean-slate default template; bash installer bugfixes; unified installer behaviour
 - Full history: [`CHANGELOG.md`](./CHANGELOG.md)
 
