@@ -54,7 +54,13 @@ If you're an AI agent reading this: **these protocols are non-negotiable**. Foll
    | YYYY-MM-DD HH:MM | ingest | raw/<file> | sources/<file> + N updates | <one-line note> |
    ```
 
-5. **Report**. Tell the user: "Ingested into `sources/<file>`. Updated `<entity1>`, `<concept1>`. Created N cross-references. Flagged 0 contradictions." (If contradictions, see Protocol 3.)
+5. **Update inbox digest**. Add a row to the current week's table in `wiki/inbox-digest.md`:
+   ```
+   | <source/author> | <title> | <entity/concept affected> | <one-line takeaway> |
+   ```
+   If the current week section doesn't exist, create it. If the file exceeds ~60 days of entries, move older week sections to `wiki/inbox-archive.md` and keep `inbox-digest.md` focused on recent activity.
+
+6. **Report**. Tell the user: "Ingested into `sources/<file>`. Updated `<entity1>`, `<concept1>`. Created N cross-references. Flagged 0 contradictions." (If contradictions, see Protocol 3.)
 
 ---
 
@@ -106,31 +112,7 @@ The point is **not** to prevent the user from writing contradictory things — s
 
 1. **Offer to save**. Ask the user: *"This answer combines [[source1]], [[source2]], [[source3]]. Want me to save it as an exploration page so we can reference it later?"*
 
-2. **If yes**, create `wiki/explorations/<YYYY-MM>-<slug>.md`:
-   ```markdown
-   ---
-   title: <question or topic>
-   type: exploration
-   question: <user's original question, verbatim>
-   sources_cited: [[source1]], [[source2]], [[source3]]
-   created: YYYY-MM-DD
-   confidence: medium
-   ---
-
-   ## Question
-   <verbatim user question>
-
-   ## Synthesized answer
-   <your full answer, lightly edited for posterity>
-
-   ## Sources cited
-   - [[source1]] — relevance
-   - [[source2]] — relevance
-   - [[source3]] — relevance
-
-   ## Open questions
-   - <any sub-questions this raised but didn't answer>
-   ```
+2. **If yes**, create `wiki/explorations/<YYYY-MM>-<slug>.md` using `wiki/explorations/_template.md` as the base structure. The template includes: trigger event, hypothesis branches with test methods, key uncertainties, data gaps, action nodes with trigger conditions, and open questions. Adapt the template to the complexity of the question — simple answers don't need every section.
 
 3. **Limit the noise**. Offer crystallization at most **twice per conversation**. The user will tell you when they want it.
 
@@ -153,7 +135,9 @@ Run `python scripts/wiki_index.py --lint`. It will surface:
 For each `concept` page that has accumulated 3+ new sources since last compile, regenerate the `## 综述 / Synthesis` section by reading all linked sources.
 
 ### Promote rules
-Scan entity pages for patterns confirmed 3+ times. Suggest promoting them to `rules.md` as a new entry.
+Scan entity pages for patterns confirmed 3+ times. Suggest promoting them to `rules.md` as a new entry. Follow the Rule Lifecycle defined in `rules.md`: promotion requires user confirmation, and every lifecycle event (promote, review, retire, update) must be logged in the Promotion Log at the bottom of `rules.md`.
+
+When new evidence contradicts an active rule, move it to "Rules Under Review" with the contradicting evidence, and flag it for the next weekly review.
 
 ### Verify predictions
 Scan `sources/*.md` for `## Verifiable Predictions` tables. For predictions whose target date has passed:

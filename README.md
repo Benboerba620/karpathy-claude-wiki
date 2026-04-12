@@ -327,6 +327,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 - **No Markdown experience?** Fine. Your job is "drop files, ask questions"; the AI does the formatting.
 - **Do I need to understand schema / protocol first?** No. Install it, run it, learn as you go.
 - **No Python?** The installer will still finish. Install Python later, then run `python scripts/wiki_index.py` and `python scripts/wiki_index.py --lint`.
+- **Windows says `python` but opens the Microsoft Store?** That's only the OS app-execution alias, not a real interpreter. The PowerShell installer now skips index/lint in that case and tells you to install Python first.
 - **I just want to try it without polluting an existing project.** Point `-TargetDir` at a new empty folder.
 
 ---

@@ -30,6 +30,42 @@ function Write-Utf8File {
     [System.IO.File]::WriteAllText($Path, $Content, $encoding)
 }
 
+function Get-UsablePythonCommand {
+    $candidates = @(
+        @{ Name = 'py'; VersionArgs = @('--version'); PrefixArgs = @('-3'); DisplayName = 'py -3' },
+        @{ Name = 'python'; VersionArgs = @('--version'); PrefixArgs = @(); DisplayName = 'python' },
+        @{ Name = 'python3'; VersionArgs = @('--version'); PrefixArgs = @(); DisplayName = 'python3' }
+    )
+
+    foreach ($candidate in $candidates) {
+        $command = Get-Command $candidate.Name -ErrorAction SilentlyContinue
+        if (-not $command -or -not $command.Source) {
+            continue
+        }
+
+        try {
+            $versionOutput = & $command.Source @($candidate.VersionArgs) 2>&1 | Out-String
+            if ($LASTEXITCODE -ne 0) {
+                continue
+            }
+            if ($versionOutput -notmatch 'Python\s+3(\.\d+)+') {
+                continue
+            }
+
+            return [pscustomobject]@{
+                Path = $command.Source
+                PrefixArgs = $candidate.PrefixArgs
+                DisplayName = $candidate.DisplayName
+            }
+        }
+        catch {
+            continue
+        }
+    }
+
+    return $null
+}
+
 function Get-ProtocolBody {
     param([string]$TemplateText)
 
@@ -195,24 +231,27 @@ Merge-ClaudeMd -TemplatePath $sourceClaude -TargetPath $targetClaude -WikiDirNam
 New-FirstEntity -WikiRoot $targetWiki -Name $EntityName
 
 if (-not $SkipIndex) {
-    $python = Get-Command python -ErrorAction SilentlyContinue
+    $python = Get-UsablePythonCommand
     if ($python) {
         Write-Step 'Generating wiki index'
         Push-Location $resolvedTargetDir
         try {
             try {
-                & $python.Source .\scripts\wiki_index.py
+                $indexArgs = @($python.PrefixArgs + @('.\scripts\wiki_index.py'))
+                $lintArgs = @($python.PrefixArgs + @('.\scripts\wiki_index.py', '--lint'))
+
+                & $python.Path @indexArgs
                 if ($LASTEXITCODE -ne 0) {
                     throw 'wiki_index.py failed'
                 }
 
-                & $python.Source .\scripts\wiki_index.py --lint
+                & $python.Path @lintArgs
                 if ($LASTEXITCODE -ne 0) {
                     throw 'wiki lint failed'
                 }
             }
             catch {
-                Write-Warning "python was detected, but index generation or lint failed. Installation still completed. Run 'python scripts/wiki_index.py' and 'python scripts/wiki_index.py --lint' later. Details: $($_.Exception.Message)"
+                Write-Warning "$($python.DisplayName) was detected, but index generation or lint failed. Installation still completed. Run '$($python.DisplayName) scripts/wiki_index.py' and '$($python.DisplayName) scripts/wiki_index.py --lint' later. Details: $($_.Exception.Message)"
             }
         }
         finally {
@@ -220,7 +259,7 @@ if (-not $SkipIndex) {
         }
     }
     else {
-        Write-Warning "python was not detected; skipped _index.json / overview.md generation. Installation still completed. Run 'python scripts/wiki_index.py' later after Python is available."
+        Write-Warning "No usable Python 3 interpreter was detected; skipped _index.json / overview.md generation. Installation still completed. On Windows, the Microsoft Store 'python.exe' alias does not count. Run 'py -3 scripts/wiki_index.py' or 'python scripts/wiki_index.py' later after Python is installed."
     }
 }
 

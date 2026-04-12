@@ -19,6 +19,7 @@ wiki/
 ├── rules.md            # validated rules
 ├── false-beliefs.md    # refuted conventional wisdom
 ├── inbox-digest.md     # recent ingest summary
+├── inbox-archive.md    # older weekly digest sections
 ├── raw/                # immutable original materials
 │   ├── articles/
 │   ├── books/
@@ -32,8 +33,8 @@ wiki/
 │       └── ...         # optional sub-pages when one file stops being enough
 ├── concepts/           # themes, frameworks, ideas
 │   └── {THEME}.md      # OR {THEME}/{THEME}.md for sub-pages
-├── explorations/       # crystallized query answers
-├── decisions/          # decision log with reasoning
+├── explorations/       # crystallized query answers (see _template.md)
+├── decisions/          # decision log with reasoning (see _template.md)
 └── comparisons/        # side-by-side analyses
 ```
 
@@ -42,10 +43,12 @@ wiki/
 | type | location | when to use |
 |---|---|---|
 | `entity` | `entities/{NAME}/` | A discrete thing you track over time |
+| `tracker` | `entities/{NAME}/tracker.md` | Append-only evidence and catalyst tracking for one entity |
+| `notes` | `entities/{NAME}/notes.md` | Dated research notes for one entity |
 | `concept` | `concepts/{NAME}.md` | A theme that connects multiple entities |
 | `source-summary` | `sources/` | Compiled summary of one external source |
-| `exploration` | `explorations/` | Crystallized answer to a research question |
-| `decision` | `decisions/` | A decision you made, with reasoning |
+| `exploration` | `explorations/` | Crystallized answer to a research question (template: `explorations/_template.md`) |
+| `decision` | `decisions/` | A decision you made, with reasoning (template: `decisions/_template.md`) |
 | `comparison` | `comparisons/` | A vs B analysis |
 | `meta` | root | `_schema.md`, `rules.md`, `false-beliefs.md` |
 
@@ -56,7 +59,7 @@ Every `.md` page (except `raw/`) must have YAML frontmatter:
 ```yaml
 ---
 title: <human-readable title>
-type: entity | concept | source-summary | exploration | decision | comparison | meta
+type: entity | tracker | notes | concept | source-summary | exploration | decision | comparison | meta
 domain: [investing | research | reading | writing | tech | life]  # one or more
 sources: [raw/category/filename]   # only for source-summary
 related: [[entity1]], [[concept1]] # wikilinks to related pages
@@ -104,7 +107,8 @@ When the user gives you a new source:
 3. Identify entities & concepts mentioned; update the relevant profile pages (and any optional sub-pages if the user uses them), or create those pages with user confirmation
 4. Maintain bidirectional `[[wikilinks]]`
 5. Append a row to `_log.md`
-6. Run lint: `python scripts/wiki_index.py --lint`
+6. Update the current week in `inbox-digest.md`; archive older weekly sections into `inbox-archive.md` when needed
+7. Run lint: `python scripts/wiki_index.py --lint`
 
 Full protocol details in `CLAUDE.md`.
 
@@ -122,8 +126,10 @@ When a source contains specific, dated, falsifiable predictions, add this sectio
 
 States: `pending` → `confirmed` / `partially` / `denied`.
 
-- `confirmed` 3+ times → suggest promoting to `rules.md`
+- `confirmed` 3+ times → suggest promoting to `rules.md` (see Rule Lifecycle in `rules.md`)
 - `denied` and reveals a bias → suggest adding to `false-beliefs.md`
+
+When promoting a rule, also log the event in the Promotion Log at the bottom of `rules.md`.
 
 The periodic verification job (run by user, weekly) processes overdue predictions.
 

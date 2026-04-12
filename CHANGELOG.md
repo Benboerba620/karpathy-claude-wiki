@@ -4,6 +4,8 @@
 
 ## 2026-04-09
 
+- Fix PowerShell installer detection so the Windows Store `python.exe` alias is treated as "Python unavailable" instead of a real interpreter.
+
 - 清理模板默认内容：移除 `EXAMPLE` 页面、`tracker.md` / `notes.md` 模板、`decisions/README.md` 以及默认提交的生成文件
 - 对齐 Windows / macOS / Linux 安装器：两者都会写入 `wiki/_protocols.md`，已有 `CLAUDE.md` 时只追加轻量入口
 - 修复安装器在检测到 Python 但不可运行时直接中断的问题，改为提示后继续安装
@@ -28,4 +30,3 @@
 - 新增中文 README 和中英文切换入口
 - 改进 AI 安装协议，补充 EXAMPLE 占位文件清理说明
 - 发布 Karpathy 风格的空 wiki 模板结构
-

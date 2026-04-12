@@ -33,12 +33,13 @@ INDEX_JSON = WIKI_DIR / "_index.json"
 OVERVIEW_MD = WIKI_DIR / "overview.md"
 
 # Files / dirs to exclude from indexing
-EXCLUDED_FILES = {"_schema.md", "_log.md", "_index.json", "overview.md", "inbox-digest.md", "_attention.md", "_protocols.md", "_template.md"}
+EXCLUDED_FILES = {"_schema.md", "_log.md", "_index.json", "overview.md", "inbox-digest.md", "inbox-archive.md", "_attention.md", "_protocols.md", "_template.md"}
 EXCLUDED_DIRS = {"raw", "_template"}
 EXCLUDED_PATHS = {"decisions/README.md"}
 
-# Files to skip in lint (templates and examples have intentional placeholder wikilinks)
-LINT_SKIP_PATTERNS = ("_template", "EXAMPLE")
+# Scaffolding pages have intentional placeholder links and should not affect health metrics.
+SCAFFOLD_SKIP_PATTERNS = ("_template", "EXAMPLE")
+LINT_SKIP_PATTERNS = SCAFFOLD_SKIP_PATTERNS
 
 # Root-level meta files don't need inbound wikilinks (LLM finds them via schema)
 ROOT_META_FILES = {"rules.md", "false-beliefs.md", "inbox-digest.md", "overview.md"}
@@ -293,7 +294,10 @@ def display_title(page: dict) -> str:
 
 def is_skipped_for_report(page: dict) -> bool:
     """Skip scaffolding pages from report metrics."""
-    return "_template" in page["path"] or page["path"] in EXCLUDED_PATHS
+    return (
+        any(pattern in page["path"] for pattern in SCAFFOLD_SKIP_PATTERNS)
+        or page["path"] in EXCLUDED_PATHS
+    )
 
 
 def cmd_report():

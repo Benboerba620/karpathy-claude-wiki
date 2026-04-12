@@ -18,6 +18,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 ```
 
 Use `-Force` if the target `wiki/` already exists and you explicitly want to overwrite it.
+On Windows, the installer ignores the Microsoft Store `python.exe` alias and only runs index/lint when a real Python 3 interpreter is available.
 
 ## `wiki_index.py`
 

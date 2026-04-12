@@ -214,7 +214,7 @@ Copy the template to the new location and fill in basic frontmatter (title, crea
 
 ## Phase 6 — Verify and hand off
 
-1. **Generate the index**: `python scripts/wiki_index.py` (no args). This produces `wiki/_index.json` and `wiki/overview.md` for navigation. If python isn't available, tell the user the wiki still works and they can run this command later.
+1. **Generate the index**: `python scripts/wiki_index.py` (no args). This produces `wiki/_index.json` and `wiki/overview.md` for navigation. If python isn't available, tell the user the wiki still works and they can run this command later. On Windows, do not treat the Microsoft Store `python.exe` alias as a usable interpreter.
 2. **Cleanup**: `rm -rf .karpathy-tmp` (PowerShell: `Remove-Item .\.karpathy-tmp -Recurse -Force`).
 3. Show the user a tree of the new `wiki/` directory.
 4. Confirm `CLAUDE.md` copy/lightweight integration worked, and show that `wiki/_protocols.md` was written.
