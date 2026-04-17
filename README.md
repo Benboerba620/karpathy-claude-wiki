@@ -3,6 +3,9 @@
 [![Latest Release](https://img.shields.io/github/v/release/Benboerba620/karpathy-claude-wiki?display_name=tag)](https://github.com/Benboerba620/karpathy-claude-wiki/releases/latest)
 [![Wiki Lint](https://github.com/Benboerba620/karpathy-claude-wiki/actions/workflows/wiki-lint.yml/badge.svg)](https://github.com/Benboerba620/karpathy-claude-wiki/actions/workflows/wiki-lint.yml)
 
+> 🔗 **"零代码 AI 投研三件套" 之一** ｜ Part of the zero-code AI investment research toolkit
+> 知识库底座 karpathy-claude-wiki · [日常盯盘 daily-watchlist](https://github.com/Benboerba620/daily-watchlist) · [假设追踪 hypothesis-tracker](https://github.com/Benboerba620/hypothesis-tracker)
+
 # 中文
 
 > 一个个人 LLM 知识库模板，**灵感来自 [Andrej Karpathy 的推文](https://x.com/karpathy/status/2039805659525644595)** —— 用 LLM 来构建和维护个人 wiki。本模板针对 [Claude Code](https://claude.com/claude-code) 优化，但任何能读写文件的 AI agent 都可以使用。
