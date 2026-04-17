@@ -26,6 +26,15 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 - `.karpathy-tmp/wiki/` → 用户选择的路径（默认 `./wiki/`）
 - `.karpathy-tmp/scripts/wiki_index.py` → `./scripts/wiki_index.py`（不存在则创建 `scripts/`）
 
+**可选**：如果用户明确说要 ingest 大 PDF / 长播客文稿 / 几百页文档，同时也复制：
+- `.karpathy-tmp/scripts/ingest_helper.py` → `./scripts/ingest_helper.py`
+- `.karpathy-tmp/.env.example` → `./.env.example`
+
+然后告诉用户：
+> "如果你想让 agent 把 PDF 压缩步骤外包给便宜的外接 LLM（省主对话 token），去注册 Kimi / 智谱 GLM / DeepSeek / 通义千问 / OpenAI 之中**任意一家**（前四家都有国内免费额度），把 `.env.example` 复制成 `.env` 并填一个 key，然后 `pip install requests pypdf` 就能用了。如果只 ingest 短文章，完全可以不装。"
+
+如果用户只说 ingest 文章 / 短笔记，不要主动装这两个文件 —— 多余。
+
 ⚠️ **此时不要删 `.karpathy-tmp/`** —— 阶段 4 还要用 `.karpathy-tmp/CLAUDE.md`。清理留到阶段 6。
 
 ## 阶段 3 — 按用户领域定制
@@ -136,6 +145,15 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 Move:
 - `.karpathy-tmp/wiki/` → user's chosen path (default `./wiki/`)
 - `.karpathy-tmp/scripts/wiki_index.py` → `./scripts/wiki_index.py` (create `scripts/` if needed)
+
+**Optional**: only if the user explicitly plans to ingest large PDFs / long podcast transcripts / multi-hundred-page docs, also copy:
+- `.karpathy-tmp/scripts/ingest_helper.py` → `./scripts/ingest_helper.py`
+- `.karpathy-tmp/.env.example` → `./.env.example`
+
+Then tell the user:
+> "If you want the agent to offload PDF compression to a cheaper external LLM (saves main-conversation tokens), register for **any one** of Kimi / Zhipu GLM / DeepSeek / Qwen / OpenAI (the first four have free tiers in mainland China), copy `.env.example` to `.env` and fill in one API key, then `pip install requests pypdf`. Skip if you only ingest short articles."
+
+Do **not** copy these two files proactively if the user only mentioned short sources — they're dead weight for that use case.
 
 ⚠️ **Do NOT delete `.karpathy-tmp/` yet** — Phase 4 still needs `.karpathy-tmp/CLAUDE.md`. Cleanup happens in Phase 6.
 

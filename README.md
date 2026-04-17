@@ -202,6 +202,54 @@ Agent 会按 `INSTALL-FOR-AI.md` 里的 6 阶段协议走完整个流程：澄�
 
 ---
 
+## 可选：大文件 ingest 外接 LLM 助手
+
+**什么情况需要**：你要 ingest 几十页的研报、长播客文稿、或几百页的书，直接把全文塞进 Claude / Cursor 主对话会狂烧 context。
+
+**怎么用**：`scripts/ingest_helper.py` 会把压缩步骤外包给你选的一个 OpenAI 兼容 LLM，返回结构化 JSON，主 agent 再快速生成 `sources/` 页面。
+
+**支持的 provider**（任选一家即可，前四家在国内都有免费额度）：
+
+| Provider | 注册地址 | 免费额度 / 特点 |
+|---|---|---|
+| **Kimi / 月之暗面** | [platform.moonshot.cn](https://platform.moonshot.cn/) | 长文本友好，新用户有免费额度 |
+| **智谱 GLM** | [bigmodel.cn](https://bigmodel.cn/) | `glm-4-flash` 截至 2026-01 免费 |
+| **DeepSeek** | [platform.deepseek.com](https://platform.deepseek.com/) | 新用户送免费 credits |
+| **通义 Qwen** | [dashscope.console.aliyun.com](https://dashscope.console.aliyun.com/) | 阿里 DashScope，OpenAI 兼容模式 |
+| **OpenAI** | [platform.openai.com](https://platform.openai.com/) | 或任何 OpenAI 兼容端点（改 base_url） |
+
+**三步配好**：
+
+```bash
+# 1. 拷贝配置模板
+cp .env.example .env
+
+# 2. 编辑 .env，在其中一家 provider 下取消注释并填 key
+#    （只需填一家，脚本会自动探测）
+
+# 3. 装依赖
+pip install requests pypdf
+```
+
+**用法**：
+
+```bash
+# 让 helper 读 PDF，把结构化 JSON 打到 stdout
+python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
+
+# 或者显式指定 provider
+python scripts/ingest_helper.py --pdf my.pdf --provider glm
+
+# 写到文件（AI agent 之后读这个 JSON 去生成 sources/ 页面）
+python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
+```
+
+JSON 输出包含 `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned`，正好对齐 ingest 协议里 `sources/<日期>-<slug>.md` 的字段。
+
+**不需要时完全可以跳过**。默认 Claude Code / Cursor 读短文章已经够用，这个 helper 是给大文件场景兜底的。
+
+---
+
 ## 这个模板**不**包含什么
 
 - **没有向量数据库**。Markdown + frontmatter + LLM 上下文窗口已经够用。
@@ -425,6 +473,54 @@ Open Claude Code (or Cursor / Cline / any agent that can fetch URLs and write fi
 > Install this for me: https://github.com/Benboerba620/karpathy-claude-wiki/blob/main/INSTALL-FOR-AI.md
 
 The agent will follow the 6-phase protocol in `INSTALL-FOR-AI.md`: clarify your domain, clone the template, customize for your domain (if needed), write `wiki/_protocols.md`, lightly integrate or copy `CLAUDE.md`, scaffold your first entity, generate the index, and hand off.
+
+---
+
+## Optional: external-LLM helper for large ingests
+
+**When you need this**: you're ingesting multi-hundred-page research reports, long podcast transcripts, or full books — feeding the whole text into the main Claude / Cursor conversation would burn a lot of context.
+
+**What it does**: `scripts/ingest_helper.py` offloads the compression step to a cheaper, OpenAI-compatible LLM of your choice, returns a structured JSON summary, and your main agent turns it into a `sources/` page quickly.
+
+**Supported providers** (any one works; the first four have free tiers in mainland China):
+
+| Provider | Sign up | Free tier / note |
+|---|---|---|
+| **Kimi / Moonshot** | [platform.moonshot.cn](https://platform.moonshot.cn/) | Strong on long text, free credits for new users |
+| **Zhipu GLM** | [bigmodel.cn](https://bigmodel.cn/) | `glm-4-flash` is free as of 2026-01 |
+| **DeepSeek** | [platform.deepseek.com](https://platform.deepseek.com/) | Trial credits for new users |
+| **Alibaba Qwen** | [dashscope.console.aliyun.com](https://dashscope.console.aliyun.com/) | DashScope OpenAI-compatible mode |
+| **OpenAI** | [platform.openai.com](https://platform.openai.com/) | Or any OpenAI-compatible endpoint (override `base_url`) |
+
+**Three-step setup**:
+
+```bash
+# 1. Copy the config template
+cp .env.example .env
+
+# 2. Edit .env, uncomment ONE provider block, paste the API key
+#    (the script auto-detects whichever you configured)
+
+# 3. Install dependencies
+pip install requests pypdf
+```
+
+**Usage**:
+
+```bash
+# Read a PDF, print structured JSON to stdout
+python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
+
+# Or pick a provider explicitly
+python scripts/ingest_helper.py --pdf my.pdf --provider glm
+
+# Write to a file (your agent then reads it to generate the sources/ page)
+python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
+```
+
+The JSON output contains `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned` — mapping cleanly onto the fields in a `sources/<date>-<slug>.md` page.
+
+**Skip entirely if you don't need it.** For short articles the main agent can read directly; this helper only earns its keep on large sources.
 
 ---
 
