@@ -269,7 +269,7 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 >
 > **Status**: Empty template. You decide what goes in; the LLM handles the bookkeeping.
 
-**Last updated**: `2026-04-12`
+**Last updated**: `2026-04-17`
 
 **Pick the path that matches you:**
 
@@ -278,7 +278,6 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 | 🤖 **Anyone, especially non-technical users** | [**Let Claude Code / an AI agent install it (recommended)**](#-recommended-let-claude-code--an-ai-agent-install-it) |
 | 📄 **Plan to ingest research reports / long docs** | [Optional: external-LLM helper for large ingests](#-optional-external-llm-helper-for-large-ingests) |
 | 🧑‍💻 **Prefer local scripts / don't want an agent touching your disk** | [Advanced: local script install](#advanced-local-script-install-windows--macos--linux) (collapsible) |
-| 🛠️ **Want every step hand-crafted** | [Advanced: manual install (5 minutes)](#advanced-manual-install-5-minutes) (collapsible) |
 
 ## Recent Updates
 
@@ -447,56 +446,6 @@ Flags:
 > Read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol.
 
 </details>
-
-<details>
-<summary><b>Advanced: manual install (5 minutes)</b></summary>
-
-For people already comfortable with git / CLI / Markdown.
-
-### 1. Clone
-
-```bash
-git clone https://github.com/Benboerba620/karpathy-claude-wiki.git
-cd karpathy-claude-wiki
-```
-
-### 2. Copy `CLAUDE.md` to your project root
-
-```bash
-# 🍎 macOS / Linux
-cp CLAUDE.md ../my-project/CLAUDE.md
-```
-
-```powershell
-# 🪟 Windows PowerShell
-Copy-Item .\CLAUDE.md ..\my-project\CLAUDE.md
-```
-
-If your project **already has** a `CLAUDE.md`, don't overwrite it — use one of the local scripts in the collapsible above: they write the full protocol to `wiki/_protocols.md` and only add a lightweight entry to your existing `CLAUDE.md`.
-
-### 3. Drop a first source into `raw/`
-
-```bash
-# 🍎 macOS / Linux
-cp ~/Downloads/some-research-paper.md wiki/raw/papers/
-```
-
-```powershell
-# 🪟 Windows PowerShell
-Copy-Item "$HOME\Downloads\some-research-paper.md" .\wiki\raw\papers\
-```
-
-### 4. Open Claude Code and say:
-
-> Read `wiki/_schema.md` and `CLAUDE.md`, then ingest `wiki/raw/papers/some-research-paper.md` following the ingest protocol.
-
-Claude will: create `wiki/sources/<date>-<slug>.md` with a structured summary, detect entities/concepts and create or update those pages, add cross-references via `[[wikilinks]]`, and append to `_log.md`.
-
-After your first ingest, refine the schema based on what worked, then ingest more.
-
-</details>
-
----
 
 ## What's NOT in this template
 
