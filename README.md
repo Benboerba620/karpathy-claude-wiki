@@ -12,19 +12,21 @@
 >
 > **状态**：空模板。你负责放资料、提问题；LLM 负责整理、交叉引用、回写和持续维护。
 
-**Last updated**：`2026-04-12`
+**Last updated**：`2026-04-17`
 
 **直接按你的情况选一条路：**
 
 | 你是谁 | 走哪条路 |
 |---|---|
-| 🪟 **Windows 用户 + 编程小白**（投资者 / 研究员） | [一键安装（PowerShell 脚本）](#-windows-小白一键安装推荐) |
-| 🍎 **macOS / Linux 用户 + 编程小白** | [一键安装（bash 脚本）](#-macos--linux-小白一键安装) |
-| 🧑‍💻 **会用 Git / 命令行** | [手动安装（5 分钟）](#手动安装5-分钟) |
-| 🤖 **想让 AI agent 帮你装** | 把 [`INSTALL-FOR-AI.md`](./INSTALL-FOR-AI.md) 的链接发给 Claude Code，说"帮我装这个" |
+| 🤖 **任何人，尤其编程小白** | [**让 Claude Code / AI agent 帮你装（推荐）**](#-推荐让-claude-code--ai-agent-帮你装) |
+| 📄 **要 ingest 研报 / 长文档** | [可选：大文件 ingest 外接 LLM 助手](#-可选大文件-ingest-外接-llm-助手) |
+| 🧑‍💻 **偏好本地脚本 / 不想让 agent 动电脑** | [进阶：本地脚本安装](#进阶本地脚本安装-windows--macos--linux)（折叠） |
+| 🛠️ **想完全手动拆解每一步** | [进阶：手动安装（5 分钟）](#进阶手动安装5-分钟)（折叠） |
 
 ## 最近更新
 
+- `2026-04-17`：README 结构重排——让 Claude Code / AI agent 帮你装成为首推路径，本地脚本和手动安装折叠为进阶选项
+- `2026-04-17`：新增 `scripts/ingest_helper.py` + `.env.example`：可选的大文件 ingest 外接 LLM 助手，支持 Kimi / 智谱 GLM / DeepSeek / 通义 Qwen / OpenAI 五家 OpenAI 兼容 provider（前四家在国内有免费额度）
 - `2026-04-12`：新增 `explorations/_template.md` 和 `decisions/_template.md`，包含假设分支、备选方案、行动触发条件、Lessons → Rules 闭环
 - `2026-04-12`：`rules.md` 新增 Rule Lifecycle（`observation → pattern → RULE → under review → retired`），Promotion Log 记录所有生命周期事件
 - `2026-04-12`：`inbox-digest.md` 从平铺表格改为按周分组，60 天滚动归档到 `inbox-archive.md`
@@ -59,71 +61,114 @@ wiki/
 
 ---
 
-## 🪟 Windows 小白：一键安装（推荐）
+## 🤖 推荐：让 Claude Code / AI agent 帮你装
 
-如果你 **第一次接触这类项目** + **不会 Git / Markdown / 命令行**，按这 4 步来。
+**最简单的方式**。不用下载项目、不用开终端、不用敲命令——整个流程就是打开 AI agent 发一句话。
 
-**开始前你只需要知道**：
-- 你**不需要**先懂 schema、protocol、frontmatter 这些词
-- 你**不需要**会 Markdown；你的工作是"丢文件 + 提问题"
-- 推荐环境：**Windows + PowerShell + Claude Code**
+### 1. 打开 Claude Code（或 Cursor / Cline / Windsurf 等任何能读 URL + 写文件的 agent）
 
-### 1. 下载这个项目
+### 2. 把下面这句话发给它：
 
-二选一：
-- 会用 git：`git clone https://github.com/Benboerba620/karpathy-claude-wiki.git`
-- 不会用 git：在 GitHub 页面点 **Code → Download ZIP**，解压
+> 帮我装这个：https://github.com/Benboerba620/karpathy-claude-wiki/blob/main/INSTALL-FOR-AI.md
 
-### 2. 打开 PowerShell，进入项目文件夹
+### 3. Agent 会按 `INSTALL-FOR-AI.md` 里的 6 阶段协议和你互动
 
-```powershell
-cd 你的项目路径\karpathy-claude-wiki
-```
+它会问你 4 个问题（一次一个）：
 
-### 3. 一键安装到你的项目目录
+1. **wiki 放哪**？（默认 `./wiki/`）
+2. **你的主要领域**？（`investing` / `research` / `reading` / `writing` / `mixed`）
+3. **项目根目录已经有 `CLAUDE.md` 了吗**？
+4. **举一个你想开始追踪的 entity**（股票代码 / 书名 / 人名 / 项目代号都行）
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
-```
-
-这一条命令会自动帮你：复制 `wiki/`、复制 `scripts/wiki_index.py`、处理 `CLAUDE.md`（已有文件时只追加轻量入口，并把完整 wiki 协议写入 `wiki/_protocols.md`）、创建第一个可跟踪的 entity（这里是 `AAPL`，你可以换成任意股票代码 / 书名 / 人名），并在 Python 可用时生成索引和跑 lint。
-
-如果你还没有自己的项目目录，把 `-TargetDir` 指到一个全新的空文件夹即可：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-wiki-project" -EntityName "AAPL"
-```
-
-### 4. 打开 Claude Code，对它说
-
-> 读一下 `wiki/_schema.md`、`wiki/_protocols.md` 和 `CLAUDE.md`，然后按 ingest 协议把我放进 `wiki/raw/` 的文件摄入到 wiki 里。
+回答完之后，agent 会自动克隆模板、按你领域定制（如果不是默认的 `investing`）、写入 `wiki/_protocols.md`、轻量接入或复制 `CLAUDE.md`、创建你指定的第一个 entity、生成索引、清理临时文件。**整个过程无需你再操作任何命令**。
 
 ### 小白常见问题
 
-- **不懂 Git，能用吗？** 可以，下载 ZIP 解压也行。
-- **不懂 Markdown，能用吗？** 可以，你的工作是"丢文件 + 提问题"，整理交给 AI。
-- **必须先懂 schema / protocol 吗？** 不必。先装起来、跑起来，后面再慢慢看。
-- **没装 Python，会失败吗？** 不一定。安装脚本会继续完成；之后装好 Python 再运行 `python scripts/wiki_index.py` 和 `python scripts/wiki_index.py --lint` 即可。
-- **只想先试试，不想污染现有项目？** 把 `-TargetDir` 指到一个全新的空文件夹。
+- **不懂 Git / Markdown / 命令行，能用吗？** 能，这条路就是为这种情况设计的。Agent 会帮你干所有技术活。
+- **必须先懂 schema / protocol 吗？** 不必。装起来先用，需要时再看。
+- **没装 Python 会失败吗？** 装起来不会失败；只是 `_index.json` 和 `overview.md` 两个导航文件生成不了，等装了 Python 再手动跑一次 `python scripts/wiki_index.py` 就好。
+- **只想先试试，不想污染现有项目？** 告诉 agent 把 wiki 放到一个全新空目录就行。
+- **Claude Code 没订阅 / 用不了怎么办？** 用 [Cursor](https://cursor.com/) / [Cline](https://cline.bot/) / [Windsurf](https://codeium.com/windsurf) 任何一个能读 URL 的 agent 都行。或者走下面「进阶：本地脚本安装」折叠段里的本地脚本。
 
 ---
 
-## 🍎 macOS / Linux 小白：一键安装
+## 📄 可选：大文件 ingest 外接 LLM 助手
 
-和 Windows 版完全等价的 bash 脚本，行为一样。
+> **什么时候值得装这个**：你计划的主要用法是 ingest 研报（几十页）、长播客文稿、或整本书。
+> **什么时候可以跳过**：你主要喂短文章 / 笔记 / 对话。主 agent 直接读就够了。
 
-### 1. 下载
+**为什么需要**：几十页的 PDF 直接塞给 Claude / Cursor 主对话会狂烧 context。`scripts/ingest_helper.py` 把"压缩 PDF 成结构化 JSON"这一步外包给一个便宜的 OpenAI 兼容 LLM，主 agent 拿到 JSON 再快速生成 `sources/` 页面。
+
+**支持五家 provider**（任选一家即可，前四家在国内都有免费额度）：
+
+| Provider | 注册地址 | 免费额度 / 特点 |
+|---|---|---|
+| **Kimi / 月之暗面** | [platform.moonshot.cn](https://platform.moonshot.cn/) | 长文本友好，新用户有免费额度 |
+| **智谱 GLM** | [bigmodel.cn](https://bigmodel.cn/) | `glm-4-flash` 截至 2026-01 免费 |
+| **DeepSeek** | [platform.deepseek.com](https://platform.deepseek.com/) | 新用户送免费 credits |
+| **通义 Qwen** | [dashscope.console.aliyun.com](https://dashscope.console.aliyun.com/) | 阿里 DashScope，OpenAI 兼容模式 |
+| **OpenAI** | [platform.openai.com](https://platform.openai.com/) | 或任何 OpenAI 兼容端点（改 `base_url` 即可） |
+
+**三步配好**：
 
 ```bash
-git clone https://github.com/Benboerba620/karpathy-claude-wiki.git
-cd karpathy-claude-wiki
+# 1. 拷贝配置模板
+cp .env.example .env
+
+# 2. 编辑 .env，在你选的那家 provider 下取消注释并填 key
+#    （只需填一家，脚本会自动探测）
+
+# 3. 装依赖
+pip install requests pypdf
 ```
 
-不会用 git：从 GitHub 页面 **Code → Download ZIP**，解压，`cd` 进去。
-
-### 2. 一键安装
+**用法示例**：
 
 ```bash
+# 读 PDF，结构化 JSON 打到 stdout
+python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
+
+# 显式指定 provider
+python scripts/ingest_helper.py --pdf my.pdf --provider glm
+
+# 写 JSON 到文件（主 agent 随后读这个 JSON 去生成 sources/ 页面）
+python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
+```
+
+JSON 输出包含 `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned`——正好对齐 ingest 协议里 `sources/<日期>-<slug>.md` 的字段。
+
+> 📝 **提示**：用 AI agent 安装路径的用户，只要在**阶段 2 克隆**时**额外**告诉 agent 把 `scripts/ingest_helper.py` 和 `.env.example` 也复制到项目，就能一起装好。agent 会自动处理。
+
+---
+
+<details>
+<summary><b>进阶：本地脚本安装 (Windows / macOS / Linux)</b></summary>
+
+适合：不想让 AI agent 接触本地文件、或者没有 Claude Code / Cursor 订阅的用户。
+
+### 🪟 Windows PowerShell 一键安装
+
+```powershell
+# 1. 下载项目
+git clone https://github.com/Benboerba620/karpathy-claude-wiki.git
+cd karpathy-claude-wiki
+
+# 2. 一键安装到目标目录（换成你自己的路径和 entity 名称）
+powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
+```
+
+不会用 git：在 GitHub 页面点 **Code → Download ZIP**，解压，`cd` 进去。
+
+脚本会：复制 `wiki/`、复制 `scripts/wiki_index.py`、处理 `CLAUDE.md`（已有则只追加轻量入口 + 把完整协议写入 `wiki/_protocols.md`）、创建第一个可跟踪 entity、在 Python 可用时生成索引并跑 lint。
+
+### 🍎 macOS / Linux bash 一键安装
+
+```bash
+# 1. 下载
+git clone https://github.com/Benboerba620/karpathy-claude-wiki.git
+cd karpathy-claude-wiki
+
+# 2. 一键安装
 bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
 ```
 
@@ -133,15 +178,14 @@ bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
 - `--force`：如果目标目录已经有 wiki，覆盖
 - `--skip-index`：跳过最后的索引 + lint
 
-macOS 默认装了 Python 3；如果缺失或不可用，脚本仍会完成安装，并提醒你之后手动运行索引和 lint。
-
-### 3. 打开 Claude Code，对它说
+### 安装完打开 Claude Code 对它说
 
 > 读一下 `wiki/_schema.md`、`wiki/_protocols.md` 和 `CLAUDE.md`，然后按 ingest 协议把我放进 `wiki/raw/` 的文件摄入到 wiki 里。
 
----
+</details>
 
-## 手动安装（5 分钟）
+<details>
+<summary><b>进阶：手动安装（5 分钟）</b></summary>
 
 适合已经会用 git / 命令行 / Markdown 的人。
 
@@ -164,7 +208,7 @@ cp CLAUDE.md ../my-project/CLAUDE.md
 Copy-Item .\CLAUDE.md ..\my-project\CLAUDE.md
 ```
 
-如果项目**已经有**`CLAUDE.md`，不要覆盖。推荐用上面的一键安装脚本：它会把完整 wiki 协议写入 `wiki/_protocols.md`，并且只在现有 `CLAUDE.md` 里追加一小段轻量入口。
+如果项目**已经有**`CLAUDE.md`，不要覆盖——推荐用上面「本地脚本安装」折叠段里的脚本：它会把完整协议写入 `wiki/_protocols.md`，并只在现有 `CLAUDE.md` 里追加一小段轻量入口。
 
 ### 3. 把第一份原始材料丢进 `raw/`
 
@@ -180,73 +224,13 @@ Copy-Item "$HOME\Downloads\some-research-paper.md" .\wiki\raw\papers\
 
 ### 4. 打开 Claude Code，对它说
 
-> "读一下 `wiki/_schema.md` 和 `CLAUDE.md`，然后按 ingest 协议把 `wiki/raw/papers/some-research-paper.md` 摄入到 wiki 里。"
+> 读一下 `wiki/_schema.md` 和 `CLAUDE.md`，然后按 ingest 协议把 `wiki/raw/papers/some-research-paper.md` 摄入到 wiki 里。
 
-Claude 接下来会：
-- 创建 `wiki/sources/<日期>-<slug>.md`，写一份结构化总结
-- 识别其中提到的 entities 和 concepts，创建或更新对应页面
-- 用 `[[wikilinks]]` 添加交叉引用
-- 追加一行到 `_log.md`
+Claude 会：创建 `wiki/sources/<日期>-<slug>.md` 写结构化总结、识别实体/概念并创建或更新页面、用 `[[wikilinks]]` 加交叉引用、追加一行到 `_log.md`。
 
-完成第一次 ingest 之后，根据效果调整 schema，然后继续摄入更多内容。
+完成第一次 ingest 后，根据效果调整 schema，继续喂更多内容。
 
----
-
-## 让 AI agent 帮你装
-
-打开 Claude Code（或 Cursor / Cline 等任何能读取 URL + 文件的 agent），把这条消息发给它：
-
-> 帮我装这个：https://github.com/Benboerba620/karpathy-claude-wiki/blob/main/INSTALL-FOR-AI.md
-
-Agent 会按 `INSTALL-FOR-AI.md` 里的 6 阶段协议走完整个流程：澄清你的领域、克隆模板、（如果需要）按你的领域定制、写入 `wiki/_protocols.md`、轻量接入或复制 `CLAUDE.md`、创建第一个 entity、生成索引、交付。
-
----
-
-## 可选：大文件 ingest 外接 LLM 助手
-
-**什么情况需要**：你要 ingest 几十页的研报、长播客文稿、或几百页的书，直接把全文塞进 Claude / Cursor 主对话会狂烧 context。
-
-**怎么用**：`scripts/ingest_helper.py` 会把压缩步骤外包给你选的一个 OpenAI 兼容 LLM，返回结构化 JSON，主 agent 再快速生成 `sources/` 页面。
-
-**支持的 provider**（任选一家即可，前四家在国内都有免费额度）：
-
-| Provider | 注册地址 | 免费额度 / 特点 |
-|---|---|---|
-| **Kimi / 月之暗面** | [platform.moonshot.cn](https://platform.moonshot.cn/) | 长文本友好，新用户有免费额度 |
-| **智谱 GLM** | [bigmodel.cn](https://bigmodel.cn/) | `glm-4-flash` 截至 2026-01 免费 |
-| **DeepSeek** | [platform.deepseek.com](https://platform.deepseek.com/) | 新用户送免费 credits |
-| **通义 Qwen** | [dashscope.console.aliyun.com](https://dashscope.console.aliyun.com/) | 阿里 DashScope，OpenAI 兼容模式 |
-| **OpenAI** | [platform.openai.com](https://platform.openai.com/) | 或任何 OpenAI 兼容端点（改 base_url） |
-
-**三步配好**：
-
-```bash
-# 1. 拷贝配置模板
-cp .env.example .env
-
-# 2. 编辑 .env，在其中一家 provider 下取消注释并填 key
-#    （只需填一家，脚本会自动探测）
-
-# 3. 装依赖
-pip install requests pypdf
-```
-
-**用法**：
-
-```bash
-# 让 helper 读 PDF，把结构化 JSON 打到 stdout
-python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
-
-# 或者显式指定 provider
-python scripts/ingest_helper.py --pdf my.pdf --provider glm
-
-# 写到文件（AI agent 之后读这个 JSON 去生成 sources/ 页面）
-python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
-```
-
-JSON 输出包含 `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned`，正好对齐 ingest 协议里 `sources/<日期>-<slug>.md` 的字段。
-
-**不需要时完全可以跳过**。默认 Claude Code / Cursor 读短文章已经够用，这个 helper 是给大文件场景兜底的。
+</details>
 
 ---
 
@@ -291,13 +275,15 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 
 | Who you are | Where to go |
 |---|---|
-| 🪟 **Windows + coding beginner** (investor / analyst) | [One-shot install (PowerShell)](#-windows-beginner-one-shot-install-recommended) |
-| 🍎 **macOS / Linux + coding beginner** | [One-shot install (bash)](#-macos--linux-beginner-one-shot-install) |
-| 🧑‍💻 **Comfortable with git / CLI** | [Manual install (5 minutes)](#manual-install-5-minutes) |
-| 🤖 **Want an AI agent to install it for you** | Send [`INSTALL-FOR-AI.md`](./INSTALL-FOR-AI.md) to Claude Code and say "install this for me" |
+| 🤖 **Anyone, especially non-technical users** | [**Let Claude Code / an AI agent install it (recommended)**](#-recommended-let-claude-code--an-ai-agent-install-it) |
+| 📄 **Plan to ingest research reports / long docs** | [Optional: external-LLM helper for large ingests](#-optional-external-llm-helper-for-large-ingests) |
+| 🧑‍💻 **Prefer local scripts / don't want an agent touching your disk** | [Advanced: local script install](#advanced-local-script-install-windows--macos--linux) (collapsible) |
+| 🛠️ **Want every step hand-crafted** | [Advanced: manual install (5 minutes)](#advanced-manual-install-5-minutes) (collapsible) |
 
 ## Recent Updates
 
+- `2026-04-17`: README restructured — "Let Claude Code / an AI agent install it" is now the top-recommended path; local scripts and manual install collapsed under "Advanced"
+- `2026-04-17`: Added `scripts/ingest_helper.py` + `.env.example`: optional external-LLM helper for large ingests, supporting 5 OpenAI-compatible providers — Kimi / Zhipu GLM / DeepSeek / Alibaba Qwen / OpenAI (the first four have free tiers in mainland China)
 - `2026-04-12`: Added `explorations/_template.md` and `decisions/_template.md` with hypothesis branches, alternatives, action triggers, and Lessons → Rules feedback loop
 - `2026-04-12`: `rules.md` now has a Rule Lifecycle (`observation → pattern → RULE → under review → retired`) with Promotion Log tracking all lifecycle events
 - `2026-04-12`: `inbox-digest.md` upgraded to weekly grouping with 60-day rolling archive to `inbox-archive.md`
@@ -332,72 +318,114 @@ The five layers are organized by **rate of change**: `raw/` never changes → `s
 
 ---
 
-## 🪟 Windows beginner: one-shot install (recommended)
+## 🤖 Recommended: Let Claude Code / an AI agent install it
 
-If you're **new to projects like this** + **don't know git / Markdown / CLI**, follow these 4 steps.
+**The simplest path.** No downloading the project, no opening a terminal, no typing commands — the whole flow is: open your AI agent, send one message.
 
-**Before you start, you only need to know**:
-- You **don't** need to understand schema, protocol, or frontmatter
-- You **don't** need to know Markdown — your job is "drop files, ask questions"
-- Recommended environment: **Windows + PowerShell + Claude Code**
+### 1. Open Claude Code (or Cursor / Cline / Windsurf / any agent that can fetch URLs and write files)
 
-### 1. Download the project
+### 2. Send this message:
 
-Either:
-- With git: `git clone https://github.com/Benboerba620/karpathy-claude-wiki.git`
-- Without git: on GitHub, click **Code → Download ZIP**, then unzip it
+> Install this for me: https://github.com/Benboerba620/karpathy-claude-wiki/blob/main/INSTALL-FOR-AI.md
 
-### 2. Open PowerShell and `cd` into the project folder
+### 3. The agent will walk you through the 6-phase protocol in `INSTALL-FOR-AI.md`
 
-```powershell
-cd path\to\karpathy-claude-wiki
-```
+It will ask you 4 questions (one at a time):
 
-### 3. One-shot install into your project directory
+1. **Where should the wiki live?** (default: `./wiki/`)
+2. **What's your primary domain?** (`investing` / `research` / `reading` / `writing` / `mixed`)
+3. **Do you already have a `CLAUDE.md` at your project root?**
+4. **What's one example entity you want to start tracking?** (a stock ticker, book title, person's name, project codename)
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
-```
-
-This single command copies `wiki/`, copies `scripts/wiki_index.py`, sets up `CLAUDE.md` (or adds only a lightweight entry if one already exists), writes the full wiki protocol to `wiki/_protocols.md`, scaffolds your first trackable entity (here `AAPL` — replace with any ticker / book / person), and generates the index + runs lint when Python is available.
-
-No project directory yet? Point `-TargetDir` at a new empty folder:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-wiki-project" -EntityName "AAPL"
-```
-
-### 4. Open Claude Code and say:
-
-> Read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol.
+Once you've answered, the agent clones the template, customizes for your domain (if not the default `investing`), writes `wiki/_protocols.md`, lightly integrates or copies `CLAUDE.md`, scaffolds the entity you named, generates the index, and cleans up. **No further commands from you.**
 
 ### Beginner FAQ
 
-- **No git? Can I still use it?** Yes — the ZIP download works.
-- **No Markdown experience?** Fine. Your job is "drop files, ask questions"; the AI does the formatting.
-- **Do I need to understand schema / protocol first?** No. Install it, run it, learn as you go.
-- **No Python?** The installer will still finish. Install Python later, then run `python scripts/wiki_index.py` and `python scripts/wiki_index.py --lint`.
-- **Windows says `python` but opens the Microsoft Store?** That's only the OS app-execution alias, not a real interpreter. The PowerShell installer now skips index/lint in that case and tells you to install Python first.
-- **I just want to try it without polluting an existing project.** Point `-TargetDir` at a new empty folder.
+- **No git / Markdown / CLI experience? Can I still use it?** Yes — this path is designed for exactly that. The agent handles all the technical work.
+- **Do I need to understand schema / protocol first?** No. Install it, use it, read docs when you need.
+- **No Python installed?** The install won't fail; only `_index.json` and `overview.md` navigation files get skipped. Install Python later and run `python scripts/wiki_index.py` once.
+- **I just want to try it without polluting an existing project.** Tell the agent to put the wiki in a brand-new empty folder.
+- **I don't have Claude Code. Alternatives?** [Cursor](https://cursor.com/), [Cline](https://cline.bot/), [Windsurf](https://codeium.com/windsurf), or any AI agent that can fetch URLs. Or see the collapsed "Advanced: local script install" section below.
 
 ---
 
-## 🍎 macOS / Linux beginner: one-shot install
+## 📄 Optional: external-LLM helper for large ingests
 
-Behaviour-equivalent bash version of the PowerShell installer.
+> **When this is worth installing**: your primary use case is ingesting multi-page research reports, long podcast transcripts, or full books.
+> **When you can skip it**: you'll mostly feed short articles / notes / conversations. The main agent reads those directly.
 
-### 1. Download
+**Why you'd want it**: multi-hundred-page PDFs fed into the main Claude / Cursor conversation burn a ton of context. `scripts/ingest_helper.py` offloads the "compress PDF → structured JSON" step to a cheaper OpenAI-compatible LLM, and the main agent uses that JSON to generate the `sources/` page quickly.
+
+**Five supported providers** (any one works; the first four have free tiers in mainland China):
+
+| Provider | Sign up | Free tier / note |
+|---|---|---|
+| **Kimi / Moonshot** | [platform.moonshot.cn](https://platform.moonshot.cn/) | Strong on long text, free credits for new users |
+| **Zhipu GLM** | [bigmodel.cn](https://bigmodel.cn/) | `glm-4-flash` is free as of 2026-01 |
+| **DeepSeek** | [platform.deepseek.com](https://platform.deepseek.com/) | Trial credits for new users |
+| **Alibaba Qwen** | [dashscope.console.aliyun.com](https://dashscope.console.aliyun.com/) | DashScope OpenAI-compatible mode |
+| **OpenAI** | [platform.openai.com](https://platform.openai.com/) | Or any OpenAI-compatible endpoint (override `base_url`) |
+
+**Three-step setup**:
 
 ```bash
+# 1. Copy the config template
+cp .env.example .env
+
+# 2. Edit .env, uncomment ONE provider block, paste the API key
+#    (the script auto-detects whichever one you configured)
+
+# 3. Install dependencies
+pip install requests pypdf
+```
+
+**Usage examples**:
+
+```bash
+# Read a PDF, print structured JSON to stdout
+python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
+
+# Explicitly pick a provider
+python scripts/ingest_helper.py --pdf my.pdf --provider glm
+
+# Write JSON to a file (the main agent then reads it to generate the sources/ page)
+python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
+```
+
+The JSON output contains `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned` — mapping cleanly onto the `sources/<date>-<slug>.md` page fields.
+
+> 📝 **Tip**: if you're going via the AI-agent install path above, during Phase 2 just tell the agent to **also** copy `scripts/ingest_helper.py` and `.env.example` into your project. It handles the rest.
+
+---
+
+<details>
+<summary><b>Advanced: local script install (Windows / macOS / Linux)</b></summary>
+
+For users who'd rather not let an AI agent touch their disk, or who don't have Claude Code / Cursor access.
+
+### 🪟 Windows PowerShell one-shot install
+
+```powershell
+# 1. Download the project
 git clone https://github.com/Benboerba620/karpathy-claude-wiki.git
 cd karpathy-claude-wiki
+
+# 2. One-shot install into a target directory (replace with your own path and entity name)
+powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
 ```
 
 No git? Use **Code → Download ZIP** on GitHub, unzip, `cd` in.
 
-### 2. One-shot install
+The script: copies `wiki/`, copies `scripts/wiki_index.py`, handles `CLAUDE.md` (if one exists, adds only a lightweight entry + writes the full protocol to `wiki/_protocols.md`), scaffolds your first trackable entity, generates the index + runs lint when Python is available.
+
+### 🍎 macOS / Linux bash one-shot install
 
 ```bash
+# 1. Download
+git clone https://github.com/Benboerba620/karpathy-claude-wiki.git
+cd karpathy-claude-wiki
+
+# 2. One-shot install
 bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
 ```
 
@@ -407,15 +435,14 @@ Flags:
 - `--force` — overwrite an existing wiki at the target
 - `--skip-index` — skip the final index + lint step
 
-macOS ships Python 3 by default; if it is missing or unusable, the installer still finishes and tells you which commands to run later.
-
-### 3. Open Claude Code and say:
+### After installation, open Claude Code and say:
 
 > Read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol.
 
----
+</details>
 
-## Manual install (5 minutes)
+<details>
+<summary><b>Advanced: manual install (5 minutes)</b></summary>
 
 For people already comfortable with git / CLI / Markdown.
 
@@ -438,7 +465,7 @@ cp CLAUDE.md ../my-project/CLAUDE.md
 Copy-Item .\CLAUDE.md ..\my-project\CLAUDE.md
 ```
 
-If your project **already has** a `CLAUDE.md`, don't overwrite it. Prefer one of the one-shot installers above: they write the full wiki protocol to `wiki/_protocols.md` and only add a lightweight entry to your existing `CLAUDE.md`.
+If your project **already has** a `CLAUDE.md`, don't overwrite it — use one of the local scripts in the collapsible above: they write the full protocol to `wiki/_protocols.md` and only add a lightweight entry to your existing `CLAUDE.md`.
 
 ### 3. Drop a first source into `raw/`
 
@@ -454,73 +481,13 @@ Copy-Item "$HOME\Downloads\some-research-paper.md" .\wiki\raw\papers\
 
 ### 4. Open Claude Code and say:
 
-> "Read `wiki/_schema.md` and `CLAUDE.md`, then ingest `wiki/raw/papers/some-research-paper.md` following the ingest protocol."
+> Read `wiki/_schema.md` and `CLAUDE.md`, then ingest `wiki/raw/papers/some-research-paper.md` following the ingest protocol.
 
-That's it. Claude will:
-- Create `wiki/sources/<date>-<slug>.md` with a structured summary
-- Detect the entities and concepts mentioned, create or update those pages
-- Add cross-references using `[[wikilinks]]`
-- Append to `_log.md`
+Claude will: create `wiki/sources/<date>-<slug>.md` with a structured summary, detect entities/concepts and create or update those pages, add cross-references via `[[wikilinks]]`, and append to `_log.md`.
 
 After your first ingest, refine the schema based on what worked, then ingest more.
 
----
-
-## Let an AI agent install it for you
-
-Open Claude Code (or Cursor / Cline / any agent that can fetch URLs and write files) and paste:
-
-> Install this for me: https://github.com/Benboerba620/karpathy-claude-wiki/blob/main/INSTALL-FOR-AI.md
-
-The agent will follow the 6-phase protocol in `INSTALL-FOR-AI.md`: clarify your domain, clone the template, customize for your domain (if needed), write `wiki/_protocols.md`, lightly integrate or copy `CLAUDE.md`, scaffold your first entity, generate the index, and hand off.
-
----
-
-## Optional: external-LLM helper for large ingests
-
-**When you need this**: you're ingesting multi-hundred-page research reports, long podcast transcripts, or full books — feeding the whole text into the main Claude / Cursor conversation would burn a lot of context.
-
-**What it does**: `scripts/ingest_helper.py` offloads the compression step to a cheaper, OpenAI-compatible LLM of your choice, returns a structured JSON summary, and your main agent turns it into a `sources/` page quickly.
-
-**Supported providers** (any one works; the first four have free tiers in mainland China):
-
-| Provider | Sign up | Free tier / note |
-|---|---|---|
-| **Kimi / Moonshot** | [platform.moonshot.cn](https://platform.moonshot.cn/) | Strong on long text, free credits for new users |
-| **Zhipu GLM** | [bigmodel.cn](https://bigmodel.cn/) | `glm-4-flash` is free as of 2026-01 |
-| **DeepSeek** | [platform.deepseek.com](https://platform.deepseek.com/) | Trial credits for new users |
-| **Alibaba Qwen** | [dashscope.console.aliyun.com](https://dashscope.console.aliyun.com/) | DashScope OpenAI-compatible mode |
-| **OpenAI** | [platform.openai.com](https://platform.openai.com/) | Or any OpenAI-compatible endpoint (override `base_url`) |
-
-**Three-step setup**:
-
-```bash
-# 1. Copy the config template
-cp .env.example .env
-
-# 2. Edit .env, uncomment ONE provider block, paste the API key
-#    (the script auto-detects whichever you configured)
-
-# 3. Install dependencies
-pip install requests pypdf
-```
-
-**Usage**:
-
-```bash
-# Read a PDF, print structured JSON to stdout
-python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
-
-# Or pick a provider explicitly
-python scripts/ingest_helper.py --pdf my.pdf --provider glm
-
-# Write to a file (your agent then reads it to generate the sources/ page)
-python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
-```
-
-The JSON output contains `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned` — mapping cleanly onto the fields in a `sources/<date>-<slug>.md` page.
-
-**Skip entirely if you don't need it.** For short articles the main agent can read directly; this helper only earns its keep on large sources.
+</details>
 
 ---
 
