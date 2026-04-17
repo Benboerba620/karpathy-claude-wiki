@@ -1,4 +1,4 @@
-﻿name: Wiki Lint
+name: Wiki Lint
 
 on:
   push:
@@ -8,8 +8,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -18,10 +25,86 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
-      - name: Verify script compiles
-        run: python -m py_compile scripts/wiki_index.py
+      - name: Verify scripts compile
+        run: python -m py_compile scripts/wiki_index.py scripts/ingest_helper.py
 
       - name: Run wiki lint
         run: python scripts/wiki_index.py --lint
+
+      - name: Seed ignored local-only files
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p wiki/raw/articles
+          printf '{"generated":true}\n' > wiki/_index.json
+          printf '# generated\n' > wiki/overview.md
+          printf '# generated\n' > wiki/_attention.md
+          printf 'secret\n' > wiki/raw/articles/local-secret.md
+
+      - name: Seed ignored local-only files
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path .\wiki\raw\articles -Force | Out-Null
+          Set-Content -Path .\wiki\_index.json -Value '{"generated":true}' -Encoding utf8
+          Set-Content -Path .\wiki\overview.md -Value '# generated' -Encoding utf8
+          Set-Content -Path .\wiki\_attention.md -Value '# generated' -Encoding utf8
+          Set-Content -Path .\wiki\raw\articles\local-secret.md -Value 'secret' -Encoding utf8
+
+      - name: Smoke test bash installer
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          target="$RUNNER_TEMP/kcw-target"
+          rm -rf "$target"
+          bash scripts/install_wiki.sh --target-dir "$target" --entity-name AAPL --skip-index --with-ingest-helper
+
+          test -f "$target/scripts/wiki_index.py"
+          test -f "$target/scripts/ingest_helper.py"
+          test -f "$target/.env.example"
+          test -f "$target/wiki/entities/AAPL/profile.md"
+          test ! -e "$target/wiki/_index.json"
+          test ! -e "$target/wiki/overview.md"
+          test ! -e "$target/wiki/_attention.md"
+          test ! -e "$target/wiki/raw/articles/local-secret.md"
+          test -f "$target/wiki/raw/articles/.gitkeep"
+
+      - name: Smoke test PowerShell installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP 'kcw-target'
+          if (Test-Path $target) {
+            Remove-Item $target -Recurse -Force
+          }
+
+          powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir $target -EntityName AAPL -SkipIndex -WithIngestHelper
+
+          $required = @(
+            (Join-Path $target 'scripts\wiki_index.py'),
+            (Join-Path $target 'scripts\ingest_helper.py'),
+            (Join-Path $target '.env.example'),
+            (Join-Path $target 'wiki\entities\AAPL\profile.md'),
+            (Join-Path $target 'wiki\raw\articles\.gitkeep')
+          )
+
+          foreach ($path in $required) {
+            if (-not (Test-Path $path)) {
+              throw "Missing expected file: $path"
+            }
+          }
+
+          $forbidden = @(
+            (Join-Path $target 'wiki\_index.json'),
+            (Join-Path $target 'wiki\overview.md'),
+            (Join-Path $target 'wiki\_attention.md'),
+            (Join-Path $target 'wiki\raw\articles\local-secret.md')
+          )
+
+          foreach ($path in $forbidden) {
+            if (Test-Path $path) {
+              throw "Unexpected file copied into target: $path"
+            }
+          }

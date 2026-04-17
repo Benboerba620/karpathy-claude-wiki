@@ -9,7 +9,10 @@ param(
 
     [switch]$Force,
 
-    [switch]$SkipIndex
+    [switch]$SkipIndex,
+
+    [Alias('IncludeIngestHelper')]
+    [switch]$WithIngestHelper
 )
 
 $ErrorActionPreference = 'Stop'
@@ -186,6 +189,50 @@ function New-FirstEntity {
     Write-Step "Created first entity: $entityProfile"
 }
 
+function Normalize-CopiedWiki {
+    param([string]$WikiRoot)
+
+    foreach ($generatedName in @('_index.json', 'overview.md', '_attention.md')) {
+        $generatedPath = Join-Path $WikiRoot $generatedName
+        if (Test-Path $generatedPath) {
+            Remove-Item $generatedPath -Force
+        }
+    }
+
+    $rawRoot = Join-Path $WikiRoot 'raw'
+    $expectedRawDirs = @('articles', 'books', 'papers', 'podcasts', 'conversations')
+    if (-not (Test-Path $rawRoot)) {
+        return
+    }
+
+    Get-ChildItem $rawRoot -Force | ForEach-Object {
+        if ($_.PSIsContainer -and $expectedRawDirs -contains $_.Name) {
+            Get-ChildItem $_.FullName -Force | Where-Object { $_.Name -ne '.gitkeep' } | Remove-Item -Recurse -Force
+            $gitkeepPath = Join-Path $_.FullName '.gitkeep'
+            if (-not (Test-Path $gitkeepPath)) {
+                New-Item -ItemType File -Path $gitkeepPath -Force | Out-Null
+            }
+        }
+        else {
+            Remove-Item $_.FullName -Recurse -Force
+        }
+    }
+
+    foreach ($dirName in $expectedRawDirs) {
+        $dirPath = Join-Path $rawRoot $dirName
+        if (-not (Test-Path $dirPath)) {
+            New-Item -ItemType Directory -Path $dirPath -Force | Out-Null
+        }
+
+        $gitkeepPath = Join-Path $dirPath '.gitkeep'
+        if (-not (Test-Path $gitkeepPath)) {
+            New-Item -ItemType File -Path $gitkeepPath -Force | Out-Null
+        }
+    }
+
+    Write-Step 'Removed generated files and non-template raw materials from copied wiki/'
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $resolvedTargetDir = [System.IO.Path]::GetFullPath($TargetDir)
 $resolvedRepoRoot = [System.IO.Path]::GetFullPath($repoRoot)
@@ -201,10 +248,14 @@ if (-not (Test-Path $resolvedTargetDir)) {
 $sourceWiki = Join-Path $repoRoot 'wiki'
 $sourceClaude = Join-Path $repoRoot 'CLAUDE.md'
 $sourceIndexScript = Join-Path $repoRoot 'scripts\wiki_index.py'
+$sourceIngestHelper = Join-Path $repoRoot 'scripts\ingest_helper.py'
+$sourceEnvExample = Join-Path $repoRoot '.env.example'
 $targetWiki = Join-Path $resolvedTargetDir $WikiDirName
 $targetScriptsDir = Join-Path $resolvedTargetDir 'scripts'
 $targetIndexScript = Join-Path $targetScriptsDir 'wiki_index.py'
+$targetIngestHelper = Join-Path $targetScriptsDir 'ingest_helper.py'
 $targetClaude = Join-Path $resolvedTargetDir 'CLAUDE.md'
+$targetEnvExample = Join-Path $resolvedTargetDir '.env.example'
 
 if (-not (Test-Path $sourceWiki)) { throw 'Template wiki/ directory was not found' }
 if (-not (Test-Path $sourceClaude)) { throw 'Template CLAUDE.md was not found' }
@@ -219,12 +270,22 @@ if (Test-Path $targetWiki) {
 
 Write-Step "Copying wiki template to $targetWiki"
 Copy-Item $sourceWiki $targetWiki -Recurse -Force
+Normalize-CopiedWiki -WikiRoot $targetWiki
 
 if (-not (Test-Path $targetScriptsDir)) {
     New-Item -ItemType Directory -Path $targetScriptsDir -Force | Out-Null
 }
 Copy-Item $sourceIndexScript $targetIndexScript -Force
 Write-Step 'Copied scripts/wiki_index.py'
+
+if ($WithIngestHelper) {
+    if (-not (Test-Path $sourceIngestHelper)) { throw 'Template scripts/ingest_helper.py was not found' }
+    if (-not (Test-Path $sourceEnvExample)) { throw 'Template .env.example was not found' }
+
+    Copy-Item $sourceIngestHelper $targetIngestHelper -Force
+    Copy-Item $sourceEnvExample $targetEnvExample -Force
+    Write-Step 'Copied scripts/ingest_helper.py and .env.example'
+}
 
 Write-ProtocolFile -TemplatePath $sourceClaude -WikiRoot $targetWiki -WikiDirName $WikiDirName
 Merge-ClaudeMd -TemplatePath $sourceClaude -TargetPath $targetClaude -WikiDirName $WikiDirName

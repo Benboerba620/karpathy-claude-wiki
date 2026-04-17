@@ -24,11 +24,13 @@ WIKI_DIR_NAME="wiki"
 ENTITY_NAME=""
 FORCE=0
 SKIP_INDEX=0
+WITH_INGEST_HELPER=0
 
 usage() {
   cat <<'EOF'
 Usage: bash install_wiki.sh --target-dir PATH [--entity-name NAME]
                             [--wiki-dir-name wiki] [--force] [--skip-index]
+                            [--with-ingest-helper]
 
 Required:
   --target-dir PATH     Project directory where the wiki will be installed.
@@ -38,6 +40,7 @@ Optional:
   --wiki-dir-name NAME  Wiki directory name (default: wiki).
   --force               Overwrite an existing wiki directory.
   --skip-index          Skip running wiki_index.py at the end.
+  --with-ingest-helper  Also copy scripts/ingest_helper.py and .env.example.
   -h, --help            Show this message.
 EOF
 }
@@ -49,6 +52,7 @@ while [[ $# -gt 0 ]]; do
     --entity-name)    ENTITY_NAME="${2:-}";   shift 2 ;;
     --force)          FORCE=1;                 shift ;;
     --skip-index)     SKIP_INDEX=1;            shift ;;
+    --with-ingest-helper) WITH_INGEST_HELPER=1; shift ;;
     -h|--help)        usage; exit 0 ;;
     *) die "Unknown argument: $1 (run with --help)" ;;
   esac
@@ -69,10 +73,14 @@ fi
 source_wiki="$repo_root/wiki"
 source_claude="$repo_root/CLAUDE.md"
 source_index_script="$repo_root/scripts/wiki_index.py"
+source_ingest_helper="$repo_root/scripts/ingest_helper.py"
+source_env_example="$repo_root/.env.example"
 target_wiki="$target_dir_abs/$WIKI_DIR_NAME"
 target_scripts_dir="$target_dir_abs/scripts"
 target_index_script="$target_scripts_dir/wiki_index.py"
+target_ingest_helper="$target_scripts_dir/ingest_helper.py"
 target_claude="$target_dir_abs/CLAUDE.md"
+target_env_example="$target_dir_abs/.env.example"
 
 [[ -d "$source_wiki" ]]         || die "Template wiki/ not found at $source_wiki"
 [[ -f "$source_claude" ]]       || die "Template CLAUDE.md not found at $source_claude"
@@ -88,9 +96,61 @@ fi
 print_step "Copying wiki template to $target_wiki"
 cp -R "$source_wiki" "$target_wiki"
 
+normalize_copied_wiki() {
+  local wiki_root="$1"
+  rm -f "$wiki_root/_index.json" "$wiki_root/overview.md" "$wiki_root/_attention.md"
+
+  local raw_root="$wiki_root/raw"
+  local expected_raw_dirs=(articles books papers podcasts conversations)
+  [[ -d "$raw_root" ]] || return
+
+  shopt -s dotglob nullglob
+  for path in "$raw_root"/*; do
+    local name
+    name="$(basename "$path")"
+    case "$name" in
+      articles|books|papers|podcasts|conversations)
+        if [[ -d "$path" ]]; then
+          for child in "$path"/*; do
+            [[ "$(basename "$child")" == ".gitkeep" ]] && continue
+            rm -rf "$child"
+          done
+          [[ -f "$path/.gitkeep" ]] || : > "$path/.gitkeep"
+        else
+          rm -f "$path"
+          mkdir -p "$raw_root/$name"
+          : > "$raw_root/$name/.gitkeep"
+        fi
+        ;;
+      *)
+        rm -rf "$path"
+        ;;
+    esac
+  done
+
+  local dir_name
+  for dir_name in "${expected_raw_dirs[@]}"; do
+    mkdir -p "$raw_root/$dir_name"
+    [[ -f "$raw_root/$dir_name/.gitkeep" ]] || : > "$raw_root/$dir_name/.gitkeep"
+  done
+  shopt -u dotglob nullglob
+
+  print_step "Removed generated files and non-template raw materials from copied wiki/"
+}
+
+normalize_copied_wiki "$target_wiki"
+
 mkdir -p "$target_scripts_dir"
 cp "$source_index_script" "$target_index_script"
 print_step "Copied scripts/wiki_index.py"
+
+if [[ $WITH_INGEST_HELPER -eq 1 ]]; then
+  [[ -f "$source_ingest_helper" ]] || die "Template scripts/ingest_helper.py not found"
+  [[ -f "$source_env_example" ]] || die "Template .env.example not found"
+  cp "$source_ingest_helper" "$target_ingest_helper"
+  cp "$source_env_example" "$target_env_example"
+  print_step "Copied scripts/ingest_helper.py and .env.example"
+fi
 
 write_protocol_file() {
   local template="$1" wiki_root="$2" wiki_dir_name="$3"

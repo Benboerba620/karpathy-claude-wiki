@@ -7,7 +7,9 @@ A beginner-friendly Windows PowerShell installer for Chinese / non-technical use
 
 It can:
 - copy `wiki/` into a target project
+- strip generated files / raw-material leftovers from the copied template
 - copy `scripts/wiki_index.py`
+- optionally copy `scripts/ingest_helper.py` + `.env.example`
 - copy `CLAUDE.md` or add a lightweight entry when one already exists
 - write `wiki/_protocols.md` and scaffold the first entity page
 - generate `_index.json` + `overview.md`
@@ -18,6 +20,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 ```
 
 Use `-Force` if the target `wiki/` already exists and you explicitly want to overwrite it.
+Use `-WithIngestHelper` if you also want `scripts/ingest_helper.py` and `.env.example`.
 On Windows, the installer ignores the Microsoft Store `python.exe` alias and only runs index/lint when a real Python 3 interpreter is available.
 
 ## `wiki_index.py`

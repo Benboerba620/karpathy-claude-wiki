@@ -231,13 +231,13 @@ def build_index() -> dict:
     inbound_links = {}
 
     for page in pages:
-        resolved = []
+        resolved = set()
         for link in page["outbound_links"]:
             matches = resolve_link(link, link_lookup)
-            resolved.extend(matches)
-            for match in matches:
-                inbound_links.setdefault(match, []).append(page["path"])
-        page["resolved_outbound_links"] = sorted(set(resolved))
+            resolved.update(matches)
+        page["resolved_outbound_links"] = sorted(resolved)
+        for match in page["resolved_outbound_links"]:
+            inbound_links.setdefault(match, []).append(page["path"])
 
     return {
         "generated_at": datetime.now().isoformat(timespec="seconds"),

@@ -394,7 +394,7 @@ python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
 
 The JSON output contains `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned` — mapping cleanly onto the `sources/<date>-<slug>.md` page fields.
 
-> 📝 **Tip**: if you're going via the AI-agent install path above, during Phase 2 just tell the agent to **also** copy `scripts/ingest_helper.py` and `.env.example` into your project. It handles the rest.
+> 📝 **Tip**: if you're going via the AI-agent install path above, during Phase 2 just tell the agent to **also** copy `scripts/ingest_helper.py` and `.env.example` into your project. If you're using the local installers below instead, add `-WithIngestHelper` (PowerShell) or `--with-ingest-helper` (bash).
 
 ---
 
@@ -412,11 +412,14 @@ cd karpathy-claude-wiki
 
 # 2. One-shot install into a target directory (replace with your own path and entity name)
 powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
+
+# Optional: also copy scripts/ingest_helper.py + .env.example for large ingests
+powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL" -WithIngestHelper
 ```
 
 No git? Use **Code → Download ZIP** on GitHub, unzip, `cd` in.
 
-The script: copies `wiki/`, copies `scripts/wiki_index.py`, handles `CLAUDE.md` (if one exists, adds only a lightweight entry + writes the full protocol to `wiki/_protocols.md`), scaffolds your first trackable entity, generates the index + runs lint when Python is available.
+The script: copies `wiki/`, strips local generated files / raw materials from the template copy, copies `scripts/wiki_index.py`, optionally copies `scripts/ingest_helper.py` + `.env.example`, handles `CLAUDE.md` (if one exists, adds only a lightweight entry + writes the full protocol to `wiki/_protocols.md`), scaffolds your first trackable entity, and generates the index + runs lint when Python is available.
 
 ### 🍎 macOS / Linux bash one-shot install
 
@@ -427,6 +430,9 @@ cd karpathy-claude-wiki
 
 # 2. One-shot install
 bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
+
+# Optional: also copy scripts/ingest_helper.py + .env.example for large ingests
+bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL --with-ingest-helper
 ```
 
 Flags:
@@ -434,6 +440,7 @@ Flags:
 - `--entity-name` — first entity to scaffold (a ticker / book / person)
 - `--force` — overwrite an existing wiki at the target
 - `--skip-index` — skip the final index + lint step
+- `--with-ingest-helper` — also copy `scripts/ingest_helper.py` and `.env.example`
 
 ### After installation, open Claude Code and say:
 
