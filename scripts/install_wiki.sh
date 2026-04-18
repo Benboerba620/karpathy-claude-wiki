@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
 # install_wiki.sh - karpathy-claude-wiki one-shot installer (macOS / Linux)
-#
-# Equivalent to scripts/install_wiki.ps1 (Windows PowerShell). Behaviour parity:
-#  - copies wiki/ and scripts/wiki_index.py into the target project
-#  - writes wiki/_protocols.md and lightly merges CLAUDE.md if one already exists
-#  - optionally scaffolds a first entity from the template
-#  - generates wiki index + lint (gracefully skips if Python is unavailable or fails)
-#
-# Usage:
-#   bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
-#
-# Run with --help for the full option list.
 
 set -euo pipefail
 
@@ -21,6 +10,7 @@ die()        { printf '\033[31m[karpathy-claude-wiki] ERROR: %s\033[0m\n' "$1" >
 
 TARGET_DIR=""
 WIKI_DIR_NAME="wiki"
+LANGUAGE="zh-CN"
 ENTITY_NAME=""
 FORCE=0
 SKIP_INDEX=0
@@ -29,7 +19,8 @@ WITH_INGEST_HELPER=0
 usage() {
   cat <<'EOF'
 Usage: bash install_wiki.sh --target-dir PATH [--entity-name NAME]
-                            [--wiki-dir-name wiki] [--force] [--skip-index]
+                            [--wiki-dir-name wiki] [--language zh-CN|en]
+                            [--force] [--skip-index]
                             [--with-ingest-helper]
 
 Required:
@@ -38,6 +29,7 @@ Required:
 Optional:
   --entity-name NAME    Scaffold a first entity (e.g. AAPL) under wiki/entities/.
   --wiki-dir-name NAME  Wiki directory name (default: wiki).
+  --language LANG       Generated wiki language: zh-CN (default) or en.
   --force               Overwrite an existing wiki directory.
   --skip-index          Skip running wiki_index.py at the end.
   --with-ingest-helper  Also copy scripts/ingest_helper.py and .env.example.
@@ -49,6 +41,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --target-dir)     TARGET_DIR="${2:-}";    shift 2 ;;
     --wiki-dir-name)  WIKI_DIR_NAME="${2:-}"; shift 2 ;;
+    --language)       LANGUAGE="${2:-}";      shift 2 ;;
     --entity-name)    ENTITY_NAME="${2:-}";   shift 2 ;;
     --force)          FORCE=1;                 shift ;;
     --skip-index)     SKIP_INDEX=1;            shift ;;
@@ -60,6 +53,16 @@ done
 
 [[ -z "$TARGET_DIR" ]] && { usage; echo; die "--target-dir is required"; }
 
+normalize_language() {
+  case "${1,,}" in
+    zh|zh-cn|zh-hans|cn) echo "zh-CN" ;;
+    en|en-us|en-gb) echo "en" ;;
+    *) die "Unsupported language '$1'. Use zh-CN or en." ;;
+  esac
+}
+
+LANGUAGE="$(normalize_language "$LANGUAGE")"
+
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/.." && pwd)"
 
@@ -70,15 +73,28 @@ if [[ "$target_dir_abs" == "$repo_root" ]]; then
   die "--target-dir cannot be the template repo itself. Pass your own project directory."
 fi
 
+localized_source_path() {
+  local relative_path="$1"
+  local override_path="$repo_root/locales/$LANGUAGE/$relative_path"
+  if [[ "$LANGUAGE" != "zh-CN" && -e "$override_path" ]]; then
+    printf '%s\n' "$override_path"
+  else
+    printf '%s\n' "$repo_root/$relative_path"
+  fi
+}
+
 source_wiki="$repo_root/wiki"
-source_claude="$repo_root/CLAUDE.md"
+source_claude="$(localized_source_path "CLAUDE.md")"
 source_index_script="$repo_root/scripts/wiki_index.py"
 source_ingest_helper="$repo_root/scripts/ingest_helper.py"
+source_ingest_skill_dir="$repo_root/skills/wiki-ingest"
 source_env_example="$repo_root/.env.example"
 target_wiki="$target_dir_abs/$WIKI_DIR_NAME"
 target_scripts_dir="$target_dir_abs/scripts"
+target_skills_dir="$target_dir_abs/skills"
 target_index_script="$target_scripts_dir/wiki_index.py"
 target_ingest_helper="$target_scripts_dir/ingest_helper.py"
+target_ingest_skill_dir="$target_skills_dir/wiki-ingest"
 target_claude="$target_dir_abs/CLAUDE.md"
 target_env_example="$target_dir_abs/.env.example"
 
@@ -96,43 +112,30 @@ fi
 print_step "Copying wiki template to $target_wiki"
 cp -R "$source_wiki" "$target_wiki"
 
+apply_wiki_locale_overrides() {
+  [[ "$LANGUAGE" == "zh-CN" ]] && return
+
+  local locale_wiki_root="$repo_root/locales/$LANGUAGE/wiki"
+  [[ -d "$locale_wiki_root" ]] || die "Locale wiki overrides not found for language '$LANGUAGE'"
+  cp -R "$locale_wiki_root"/. "$target_wiki"
+  print_step "Applied wiki locale overrides: $LANGUAGE"
+}
+
+apply_wiki_locale_overrides
+
 normalize_copied_wiki() {
   local wiki_root="$1"
   rm -f "$wiki_root/_index.json" "$wiki_root/overview.md" "$wiki_root/_attention.md"
 
   local raw_root="$wiki_root/raw"
-  local expected_raw_dirs=(articles books papers podcasts conversations)
   [[ -d "$raw_root" ]] || return
 
   shopt -s dotglob nullglob
   for path in "$raw_root"/*; do
-    local name
-    name="$(basename "$path")"
-    case "$name" in
-      articles|books|papers|podcasts|conversations)
-        if [[ -d "$path" ]]; then
-          for child in "$path"/*; do
-            [[ "$(basename "$child")" == ".gitkeep" ]] && continue
-            rm -rf "$child"
-          done
-          [[ -f "$path/.gitkeep" ]] || : > "$path/.gitkeep"
-        else
-          rm -f "$path"
-          mkdir -p "$raw_root/$name"
-          : > "$raw_root/$name/.gitkeep"
-        fi
-        ;;
-      *)
-        rm -rf "$path"
-        ;;
-    esac
+    rm -rf "$path"
   done
 
-  local dir_name
-  for dir_name in "${expected_raw_dirs[@]}"; do
-    mkdir -p "$raw_root/$dir_name"
-    [[ -f "$raw_root/$dir_name/.gitkeep" ]] || : > "$raw_root/$dir_name/.gitkeep"
-  done
+  : > "$raw_root/.gitkeep"
   shopt -u dotglob nullglob
 
   print_step "Removed generated files and non-template raw materials from copied wiki/"
@@ -144,6 +147,13 @@ mkdir -p "$target_scripts_dir"
 cp "$source_index_script" "$target_index_script"
 print_step "Copied scripts/wiki_index.py"
 
+if [[ -d "$source_ingest_skill_dir" ]]; then
+  mkdir -p "$target_skills_dir"
+  rm -rf "$target_ingest_skill_dir"
+  cp -R "$source_ingest_skill_dir" "$target_ingest_skill_dir"
+  print_step "Copied skills/wiki-ingest"
+fi
+
 if [[ $WITH_INGEST_HELPER -eq 1 ]]; then
   [[ -f "$source_ingest_helper" ]] || die "Template scripts/ingest_helper.py not found"
   [[ -f "$source_env_example" ]] || die "Template .env.example not found"
@@ -151,6 +161,30 @@ if [[ $WITH_INGEST_HELPER -eq 1 ]]; then
   cp "$source_env_example" "$target_env_example"
   print_step "Copied scripts/ingest_helper.py and .env.example"
 fi
+
+protocol_title() {
+  if [[ "$LANGUAGE" == "en" ]]; then
+    printf '%s\n' "Wiki Protocols"
+  else
+    printf '%s\n' "Wiki 协议"
+  fi
+}
+
+protocol_heading() {
+  if [[ "$LANGUAGE" == "en" ]]; then
+    printf '%s\n' "# Wiki Protocols"
+  else
+    printf '%s\n' "# Wiki 协议"
+  fi
+}
+
+protocol_intro() {
+  if [[ "$LANGUAGE" == "en" ]]; then
+    printf '%s\n' "> Installed from karpathy-claude-wiki. Read this together with $WIKI_DIR_NAME/_schema.md whenever working with the wiki."
+  else
+    printf '%s\n' "> 由 karpathy-claude-wiki 安装。处理 wiki 时请与 $WIKI_DIR_NAME/_schema.md 一起阅读。"
+  fi
+}
 
 write_protocol_file() {
   local template="$1" wiki_root="$2" wiki_dir_name="$3"
@@ -173,15 +207,15 @@ write_protocol_file() {
 
   cat >"$out" <<EOF
 ---
-title: Wiki Protocols
+title: $(protocol_title)
 type: meta
 created: $today
 updated: $today
 ---
 
-# Wiki Protocols
+$(protocol_heading)
 
-> Installed from karpathy-claude-wiki. Read this together with $wiki_dir_name/_schema.md whenever working with the wiki.
+$(protocol_intro)
 
 $body
 EOF
@@ -191,6 +225,32 @@ EOF
 
 merge_claude_md() {
   local template="$1" target="$2" wiki_dir_name="$3"
+  local section_header
+  local section_body
+
+  if [[ "$LANGUAGE" == "en" ]]; then
+    section_header='## Wiki Protocols (karpathy-claude-wiki)'
+    section_body=$(cat <<EOF
+When working with \`$wiki_dir_name/\`, first read:
+- \`$wiki_dir_name/_schema.md\`
+- \`$wiki_dir_name/_protocols.md\`
+
+Use those files for ingest, cross-reference, contradiction scan, crystallization, and periodic wiki maintenance.
+If the wiki protocol conflicts with project-specific instructions above, surface the conflict and ask the user which rule should win.
+EOF
+)
+  else
+    section_header='## Wiki 协议（karpathy-claude-wiki）'
+    section_body=$(cat <<EOF
+处理 \`$wiki_dir_name/\` 时，请先阅读：
+- \`$wiki_dir_name/_schema.md\`
+- \`$wiki_dir_name/_protocols.md\`
+
+使用这两个文件来执行摄入、交叉引用、矛盾扫描、结晶化与周期性维护。
+如果 wiki 协议与上方项目级指令冲突，请先明确指出冲突，再询问用户以哪条规则为准。
+EOF
+)
+  fi
 
   if [[ ! -f "$target" ]]; then
     cp "$template" "$target"
@@ -198,21 +258,16 @@ merge_claude_md() {
     return
   fi
 
-  if grep -qF '## Wiki Protocols (karpathy-claude-wiki)' "$target"; then
+  if grep -qF "$section_header" "$target"; then
     print_step "Target CLAUDE.md already contains karpathy-claude-wiki protocols, skipping append"
     return
   fi
 
   cat >>"$target" <<EOF
 
-## Wiki Protocols (karpathy-claude-wiki)
+$section_header
 
-When working with `$wiki_dir_name/`, first read:
-- `$wiki_dir_name/_schema.md`
-- `$wiki_dir_name/_protocols.md`
-
-Use those files for ingest, cross-reference, contradiction scan, crystallization, and periodic wiki maintenance.
-If the wiki protocol conflicts with project-specific instructions above, surface the conflict and ask the user which rule should win.
+$section_body
 EOF
 
   print_step "Appended lightweight wiki entry to existing CLAUDE.md"
@@ -241,14 +296,24 @@ create_first_entity() {
     local $/; my $c = <$f>; close $f;
 
     $c =~ s/\Q<Entity name>\E/$name/g;
+    $c =~ s/\Q<实体名称>\E/$name/g;
     $c =~ s/\QYYYY-MM-DD\E/$today/g;
+    $c =~ s/\Q| Started tracking | YYYY-MM-DD |\E/| Started tracking | $today |/g;
+    $c =~ s/\Q| 开始跟踪 | YYYY-MM-DD |\E/| 开始跟踪 | $today |/g;
     $c =~ s/\Q- Related entities: [[entity1]], [[entity2]]\E/- Related entities:/g;
     $c =~ s/\Q- Related concepts: [[concept1]], [[concept2]]\E/- Related concepts:/g;
     $c =~ s|\Q- Related sources: [[sources/source1]], [[sources/source2]]\E|- Related sources:|g;
+    $c =~ s/\Q- 相关实体：[[实体1]], [[实体2]]\E/- 相关实体：/g;
+    $c =~ s/\Q- 相关概念：[[概念1]], [[概念2]]\E/- 相关概念：/g;
+    $c =~ s|\Q- 相关来源：[[sources/source1]], [[sources/source2]]\E|- 相关来源：|g;
     $c =~ s/\Q- Variable 1 — why it matters, how to measure\E/- /g;
     $c =~ s/\Q- Variable 2 — why it matters, how to measure\E/- /g;
     $c =~ s/\Q- Variable 3 — why it matters, how to measure\E/- /g;
+    $c =~ s/\Q- 变量 1：为什么重要，如何衡量\E/- /g;
+    $c =~ s/\Q- 变量 2：为什么重要，如何衡量\E/- /g;
+    $c =~ s/\Q- 变量 3：为什么重要，如何衡量\E/- /g;
     $c =~ s/\Q- (questions you haven\x{27}t answered yet)\E/- /g;
+    $c =~ s/\Q- （你还没有回答的问题）\E/- /g;
 
     open(my $o, ">:utf8", $dst) or die "write: $!";
     print $o $c; close $o;
@@ -282,7 +347,16 @@ if [[ $SKIP_INDEX -eq 0 ]]; then
 fi
 
 echo
-print_done "Installation complete. Next steps:"
-print_done "1. Drop a source file into $WIKI_DIR_NAME/raw/articles/ (or papers/, books/, podcasts/, conversations/)"
-print_done "2. Open Claude Code in $target_dir_abs"
-print_done "3. Tell it: \"Read $WIKI_DIR_NAME/_schema.md, $WIKI_DIR_NAME/_protocols.md, and CLAUDE.md, then ingest the file I just dropped following the ingest protocol.\""
+if [[ "$LANGUAGE" == "en" ]]; then
+  print_done "Installation complete. Next steps:"
+  print_done "1. Drop a source file into $WIKI_DIR_NAME/raw/"
+  print_done "2. Open Claude Code in $target_dir_abs"
+  print_done "3. Tell it: \"Read $WIKI_DIR_NAME/_schema.md, $WIKI_DIR_NAME/_protocols.md, and CLAUDE.md, then ingest the file I just dropped following the ingest protocol.\""
+  print_done "4. Optional: if you use Obsidian Clippings, ask the agent to scan it with: python skills/wiki-ingest/scripts/scan_pending_sources.py --include-obsidian-clippings"
+else
+  print_done "安装完成，下一步："
+  print_done "1. 把一个源文件放进 $WIKI_DIR_NAME/raw/"
+  print_done "2. 在 $target_dir_abs 打开 Claude Code"
+  print_done "3. 对它说：\"先读 $WIKI_DIR_NAME/_schema.md、$WIKI_DIR_NAME/_protocols.md 和 CLAUDE.md，再按协议摄入我刚放进去的文件。\""
+  print_done "4. 可选：如果你使用 Obsidian Clippings，可以先让 agent 运行：python skills/wiki-ingest/scripts/scan_pending_sources.py --include-obsidian-clippings"
+fi

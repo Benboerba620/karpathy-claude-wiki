@@ -12,38 +12,38 @@ related: ["[[entity-name]]", "[[concept-name]]"]
 
 **Date**: YYYY-MM-DD
 
-## Decision
+## Decision / 决策
 
-One sentence: what you decided.
+一句话写清楚：你决定了什么。
 
-## Context
+## Context / 背景
 
-What you knew at the time. What was uncertain. Include relevant data points.
+当时你知道什么、哪些地方仍不确定、有哪些关键数据点。
 
-## Alternatives Considered
+## Alternatives Considered / 备选方案
 
-1. **Option A**: description → why rejected
-2. **Option B**: description → why rejected
+1. **Option A**: description -> why rejected
+2. **Option B**: description -> why rejected
 
-## Reasoning
+## Reasoning / 推理过程
 
-The actual logic. Why this option, not the alternatives. Link to rules or prior decisions if relevant.
+真实逻辑写在这里：为什么选这个，而不是其他选项。必要时链接到既有 rules 或 earlier decisions。
 
-## Trade-offs Accepted
+## Trade-offs Accepted / 接受的代价
 
-What you gave up to get what you got.
+你为了得到什么，放弃了什么。
 
-## What Would Change My Mind
+## What Would Change My Mind / 什么会让我改主意
 
-What evidence would make you reverse this decision.
+什么证据会让你反转这次决策。
 
-## Outcome (filled in later)
+## Outcome (filled in later) / 结果（以后补）
 
-> Leave blank initially. Come back in 3-6 months and fill in.
-> When you fill this in, also note: did the reasoning hold? Which assumptions broke?
+> 一开始留空。3-6 个月后回来填写。
+> 填写时顺手回答：原来的 reasoning 还成立吗？哪条假设断了？
 
-## Lessons → Rules
+## Lessons -> Rules / 经验提炼
 
-> After reviewing the outcome, extract any patterns worth promoting:
-> - → `rules.md` R{N}: <if a new rule emerged>
-> - → `false-beliefs.md` FB{N}: <if a belief was refuted>
+> 复盘后，把值得沉淀的模式提炼出来：
+> - -> `rules.md` R{N}: <if a new rule emerged>
+> - -> `false-beliefs.md` FB{N}: <if a belief was refuted>

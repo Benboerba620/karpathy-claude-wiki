@@ -1,169 +1,192 @@
-# CLAUDE.md — Wiki Protocols
+# CLAUDE.md - Wiki Protocols
 
-> This file defines the **four core protocols** that make a personal wiki "alive". Drop this file at your project root (or merge into your existing `CLAUDE.md`). Claude Code reads it automatically.
+> 这个文件定义了让个人 wiki “活起来”的四个核心协议。把它放在项目根目录，或把其中内容合并进你现有的 `CLAUDE.md`。Claude Code 会自动读取它。
 
-If you're a human reading this for the first time: these are the rules Claude follows when interacting with `wiki/`. Read them once to understand the contract, then forget about them — Claude enforces them.
+如果你是第一次读到它的人类：把它看作 Claude 与 `wiki/` 交互时遵守的契约。理解一次就够了，后续由 Claude 执行。
 
-If you're an AI agent reading this: **these protocols are non-negotiable**. Follow them on every wiki operation. If a protocol conflicts with a user instruction, surface the conflict before acting.
+如果你是 AI agent：**这些协议不可协商**。每次处理 wiki 时都要遵守。如果协议与用户指令冲突，先指出冲突，再行动。
 
 ---
 
-## Protocol 1 — Ingest
+## 语言 / Language
 
-**Trigger**: user drops a file into `wiki/raw/` and says "ingest this", OR pastes content and says "ingest this into the wiki".
+**默认语言：中文（简体）。**
+
+- 与用户的对话、进度更新、报错说明默认使用中文。
+- 所有新建或修改的 wiki 文件正文、标题、字段说明默认使用中文。
+- 公司名、ticker、产品名、技术术语等专有名词保留原文。
+- 原始引文保留原语言，不强制翻译。
+- 如果用户明确要求英文输出或安装英文模板，以用户指令为准。
+
+---
+
+## Protocol 1 - Ingest
+
+**Trigger**: 用户把文件放进 `wiki/raw/` 并说“ingest this”，或粘贴内容并要求“ingest this into the wiki”，或明确要求扫描可选外部 inbox（如 Obsidian `Clippings`）。
+
+**辅助 skill**: 如果运行环境支持 repo-local skills，优先使用 `skills/wiki-ingest/SKILL.md` 作为执行指南。
 
 **Steps**:
 
-1. **Archive raw**. If the source isn't already in `wiki/raw/<category>/`, move it there. `<category>` ∈ `{articles, papers, books, podcasts, conversations}`. Once in `raw/`, **never modify**.
+1. **归档原始材料**。把 `wiki/raw/` 视为默认的不可变 inbox。用户如果已经把文件放在这里，就不要再移动；如果来源是粘贴内容或外部 inbox，先复制到 `wiki/raw/`。一旦进入 `raw/`，**永不修改**。
 
-2. **Compile to source-summary**. Create `wiki/sources/<YYYY-MM-DD>-<slug>.md` with this structure:
+2. **可选外部扫描**。如果用户明确要求，可运行 `python skills/wiki-ingest/scripts/scan_pending_sources.py --include-obsidian-clippings` 扫描 Obsidian `Clippings`。如果未安装 Obsidian 或未找到 `Clippings`，静默跳过，继续处理 `wiki/raw/`。
+
+3. **编译为 source-summary**。创建 `wiki/sources/<YYYY-MM-DD>-<slug>.md`，结构如下：
+
    ```markdown
    ---
-   title: <one-line title>
+   title: <一行标题>
    type: source-summary
-   domain: <user's domain, e.g. investing/research/reading>
-   sources: [raw/<category>/<filename>]
+   domain: <用户领域，例如 investing/research/reading>
+   sources: [raw/<filename>]
    related: [[entity1]], [[concept1]]
    created: YYYY-MM-DD
    updated: YYYY-MM-DD
    confidence: high | medium | low
    ---
 
-   ## TL;DR
-   One sentence.
+   ## TL;DR / 一句话摘要
+   一句话。
 
-   ## Key Data
-   Table with the hard numbers.
+   ## Key Data / 关键数据
+   记录硬数据的表格。
 
-   ## Direct Quotes
-   Verbatim, marked with attribution.
+   ## Direct Quotes / 原始引文
+   保留原文并标明出处。
 
-   ## Implications
-   What this means for the user's existing entities/concepts.
+   ## Implications / 启示
+   这份材料对现有实体/概念意味着什么。
 
-   ## Verifiable Predictions
-   Only if the source contains specific, dated, falsifiable claims.
+   ## Verifiable Predictions / 可验证预测
+   仅当材料中出现具体、带日期、可证伪的判断时填写。
    ```
 
-3. **Extract entities & concepts**. Identify every entity and concept the source mentions. For each:
-   - **If it exists** in `wiki/entities/` or `wiki/concepts/`: update the relevant page (usually `profile.md`, plus any optional sub-pages the user actually uses). Use `[[wikilinks]]` to link back to the new source.
-   - **If it doesn't exist**: ASK the user before creating. Do not auto-create entities. The user's curation matters.
+4. **提取实体与概念**。识别材料中提到的所有实体和概念：
+   - 如果它已存在于 `wiki/entities/` 或 `wiki/concepts/`：更新对应页面（通常是 `profile.md`，以及用户确实在使用的可选子页面），并用 `[[wikilinks]]` 回链到新来源。
+   - 如果它不存在：先问用户，**不要自动创建**。知识库的策展权属于用户。
 
-4. **Append to log**. Add a row to `wiki/_log.md`:
+5. **追加到日志**。在 `wiki/_log.md` 新增一行：
+
    ```
-   | YYYY-MM-DD HH:MM | ingest | raw/<file> | sources/<file> + N updates | <one-line note> |
+   | YYYY-MM-DD HH:MM | ingest | raw/<file> | sources/<file> + N updates | <一句话备注> |
    ```
 
-5. **Update inbox digest**. Add a row to the current week's table in `wiki/inbox-digest.md`:
-   ```
-   | <source/author> | <title> | <entity/concept affected> | <one-line takeaway> |
-   ```
-   If the current week section doesn't exist, create it. If the file exceeds ~60 days of entries, move older week sections to `wiki/inbox-archive.md` and keep `inbox-digest.md` focused on recent activity.
+6. **更新 inbox digest**。在 `wiki/inbox-digest.md` 当前周的表格里新增一行：
 
-6. **Report**. Tell the user: "Ingested into `sources/<file>`. Updated `<entity1>`, `<concept1>`. Created N cross-references. Flagged 0 contradictions." (If contradictions, see Protocol 3.)
+   ```
+   | <来源/作者> | <标题> | <主要归档对象> | <一句话收获> |
+   ```
+
+   如果当周区块不存在，就创建它。如果文件累计超过约 60 天内容，把更老的周区块移到 `wiki/inbox-archive.md`。
+
+7. **向用户汇报**。格式为：`已摄入到 sources/<file>。更新了 <entity1>、<concept1>。新增 N 个交叉引用。发现 N 处潜在矛盾。`
 
 ---
 
-## Protocol 2 — Cross-Reference
+## Protocol 2 - Cross-Reference
 
-**Trigger**: any time you update an `entity` or `concept` page.
+**Trigger**: 任何时候更新 `entity` 或 `concept` 页面。
 
 **Steps**:
 
-1. **Scan related pages**. Read the `related:` frontmatter of the page you're updating. For each item in `related:`, open that page and check whether it needs a reciprocal update.
+1. **扫描相关页面**。读取当前页面 frontmatter 里的 `related:`。对每个关联项，打开对应页面，检查是否需要 reciprocal update。
 
-2. **Maintain bidirectional links**. If you add `[[B]]` to page A's `related:`, ensure page B's `related:` includes `[[A]]`. Wikilinks must be bidirectional or you'll lose information.
+2. **维护双向链接**。如果你在页面 A 的 `related:` 里加入 `[[B]]`，确保页面 B 的 `related:` 里也包含 `[[A]]`。
 
-3. **Detect orphans**. If a page has no inbound or outbound links after your update, mention it to the user — it's likely the user has a half-formed thought that needs a home.
+3. **识别孤儿页**。如果更新后某页既没有入链也没有出链，要提醒用户。通常这意味着一个尚未长成的半成品想法。
 
-4. **Update the "关联网络" / "Network" section**. Each `entity` page should have a section listing its connected entities and concepts. Update it when links change.
+4. **更新“关联网络 / Network”章节**。每个实体页都应该有连接到其他实体与概念的网络区块，链接变化时同步更新。
 
 ---
 
-## Protocol 3 — Contradiction Scan
+## Protocol 3 - Contradiction Scan
 
-**Trigger**: any time you write a new judgment, claim, or piece of evidence into the wiki.
+**Trigger**: 任何时候准备把新的判断、主张或证据写进 wiki。
 
 **Steps**:
 
-1. **Check `false-beliefs.md`**. Does the new judgment contradict an entry there? If yes: STOP, surface the contradiction to the user, ask them to confirm before writing.
+1. **检查 `false-beliefs.md`**。新判断是否与其中条目冲突？如果是，暂停并先提示用户。
 
-2. **Check `rules.md`**. Does the new judgment violate an active rule? Same protocol: surface, ask, then write.
+2. **检查 `rules.md`**。新判断是否违反现行规则？如果是，同样先提示再写入。
 
-3. **Check related pages**. If the new judgment is about entity X, scan X's existing entity pages (profile plus any optional sub-pages) for conflicting prior judgments. If found, surface them.
+3. **检查相关页面**。如果新判断与实体 X 有关，扫描 X 的现有页面（至少 `profile.md`，以及用户在用的其他子页），查找历史判断是否矛盾。
 
-4. **Format the surfacing**. Use this exact template:
+4. **按固定模板提示**：
+
    ```
    ⚠️ Possible contradiction:
-   - New evidence: <what you're about to write>
-   - Existing belief: <what's in the wiki, with file path>
-   - Suggested resolution: <one of: update old, qualify new, mark as exception>
+   - New evidence: <你准备写入的新证据>
+   - Existing belief: <wiki 里的既有观点，附文件路径>
+   - Suggested resolution: <update old | qualify new | mark as exception>
    ```
 
-The point is **not** to prevent the user from writing contradictory things — sometimes the new evidence is right and the old belief is wrong. The point is to **make the contradiction visible** so the user can decide consciously.
+目的不是阻止矛盾出现，而是让矛盾显性化，方便用户有意识地决定如何处理。
 
 ---
 
-## Protocol 4 — Crystallization
+## Protocol 4 - Crystallization
 
-**Trigger**: you just answered a research question by synthesizing 2+ sources, and the answer feels durable (not just a one-off lookup).
+**Trigger**: 你刚刚用 2 个以上来源回答了一个研究问题，而且答案具有可复用价值，不只是一次性查找。
 
 **Steps**:
 
-1. **Offer to save**. Ask the user: *"This answer combines [[source1]], [[source2]], [[source3]]. Want me to save it as an exploration page so we can reference it later?"*
+1. **先询问是否保存**。对用户说：`这个答案综合了 [[source1]]、[[source2]]、[[source3]]。要不要我把它保存成 exploration 页面，方便以后引用？`
 
-2. **If yes**, create `wiki/explorations/<YYYY-MM>-<slug>.md` using `wiki/explorations/_template.md` as the base structure. The template includes: trigger event, hypothesis branches with test methods, key uncertainties, data gaps, action nodes with trigger conditions, and open questions. Adapt the template to the complexity of the question — simple answers don't need every section.
+2. **如果用户同意**，使用 `wiki/explorations/_template.md` 创建 `wiki/explorations/<YYYY-MM>-<slug>.md`。模板包含触发事件、假设分支、不确定性、数据缺口、行动节点和开放问题。按问题复杂度取舍，不必机械填满。
 
-3. **Limit the noise**. Offer crystallization at most **twice per conversation**. The user will tell you when they want it.
+3. **控制频率**。每次对话最多主动提出两次 crystallization 建议。
 
-4. **Future use**. When the user asks a similar question later, check `explorations/` first. If there's a hit, cite it directly instead of re-synthesizing.
+4. **后续复用**。用户以后问到类似问题时，优先检查 `explorations/`，命中就直接引用，不必重新综合。
 
 ---
 
-## Periodic operations (run weekly or on demand)
-
-These aren't real-time protocols, they're scheduled hygiene:
+## 定期维护（按周或按需执行）
 
 ### Lint
-Run `python scripts/wiki_index.py --lint`. It will surface:
-- Broken `[[wikilinks]]`
-- Pages with no inbound or outbound links (orphans)
-- Pages with `frontmatter` missing required fields
-- Pages stale > 90 days that are still marked `confidence: high`
 
-### Re-compile concepts
-For each `concept` page that has accumulated 3+ new sources since last compile, regenerate the `## 综述 / Synthesis` section by reading all linked sources.
+运行 `python scripts/wiki_index.py --lint`，检查：
 
-### Promote rules
-Scan entity pages for patterns confirmed 3+ times. Suggest promoting them to `rules.md` as a new entry. Follow the Rule Lifecycle defined in `rules.md`: promotion requires user confirmation, and every lifecycle event (promote, review, retire, update) must be logged in the Promotion Log at the bottom of `rules.md`.
+- 失效的 `[[wikilinks]]`
+- 没有入链或出链的孤儿页
+- 缺失必要 frontmatter 的页面
+- 超过 90 天仍标记为 `confidence: high` 的陈旧页面
 
-When new evidence contradicts an active rule, move it to "Rules Under Review" with the contradicting evidence, and flag it for the next weekly review.
+### 重新编译 concepts
 
-### Verify predictions
-Scan `sources/*.md` for `## Verifiable Predictions` tables. For predictions whose target date has passed:
-- If confirmed: increment evidence count, possibly promote to `rules.md`
-- If denied: log to `false-beliefs.md` if it reveals a cognitive bias
+当某个 `concept` 页面自上次编译后新增了 3 个以上来源时，重写其 `## Synthesis / 综述` 区块。
 
----
+### 提升 rules
 
-## Style notes
+扫描实体页中被重复验证 3 次以上的模式，建议提升到 `rules.md`。遵守 `rules.md` 中的 Rule Lifecycle：提升、复核、退役、更新都需要写入 Promotion Log。
 
-- **Be concise**. The wiki is read by an LLM with finite context. Long-windedness costs tokens and dilutes signal.
-- **Use frontmatter religiously**. It's how the LLM finds things. Missing frontmatter = invisible page.
-- **Wikilinks over plain text**. Always `[[entity]]` instead of "the company called X". The LLM relies on link structure to navigate.
-- **No emoji in entity/concept pages**. They look cute but they break grep and they're a style mismatch with the markdown-as-data philosophy. Reserve emoji for `## Implications` sections if at all.
-- **Date everything**. Frontmatter `created:` and `updated:` are mandatory. The LLM uses them for staleness checks.
+### 验证 predictions
+
+扫描 `sources/*.md` 中 `## Verifiable Predictions / 可验证预测` 表格里已到期的预测：
+
+- 如果确认成立：增加证据计数，必要时建议提升到 `rules.md`
+- 如果被证伪：如果它暴露了认知偏差，建议写入 `false-beliefs.md`
 
 ---
 
-## Conflict resolution
+## 风格约束
 
-If a user instruction conflicts with these protocols:
-
-1. State the conflict explicitly: *"Your instruction asks me to X, but Protocol N says I should Y."*
-2. Ask which to follow.
-3. If the user overrides a protocol, ask whether they want to update this `CLAUDE.md` to reflect the new rule (so the override becomes permanent and visible to future-you).
+- **保持简洁**。wiki 主要是给 LLM 读的，冗长会浪费上下文。
+- **严格使用 frontmatter**。缺 frontmatter 的页面等于不可发现。
+- **优先 wikilinks**。尽量写 `[[entity]]`，不要只写纯文本名称。
+- **实体页和概念页不要加 emoji**。风格不统一，也不利于检索。
+- **所有内容都要带日期**。`created:` 与 `updated:` 是强制字段。
 
 ---
 
-*This file is generic. Customize it for your domain by editing the protocols, adding domain-specific rules, or removing protocols you don't need. Track your changes in git so you can see how the protocols evolved.*
+## 冲突处理
+
+如果用户指令与这些协议冲突：
+
+1. 先明确指出冲突：`你的指令要求我做 X，但 Protocol N 要求我做 Y。`
+2. 再问用户以哪条规则为准。
+3. 如果用户覆盖了协议，再问一次是否要顺手更新本文件，让新规则永久化。
+
+---
+
+*这是一个通用协议文件。你可以按自己的领域改写、删减或扩展。建议把变更提交到 git，方便追踪知识架构如何演化。*

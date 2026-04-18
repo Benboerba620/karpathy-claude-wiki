@@ -22,16 +22,9 @@ Thumbs.db
 *.local
 
 # Wiki: never commit raw materials (they're often copyrighted or sensitive)
-wiki/raw/articles/*
-wiki/raw/books/*
-wiki/raw/papers/*
-wiki/raw/podcasts/*
-wiki/raw/conversations/*
-!wiki/raw/articles/.gitkeep
-!wiki/raw/books/.gitkeep
-!wiki/raw/papers/.gitkeep
-!wiki/raw/podcasts/.gitkeep
-!wiki/raw/conversations/.gitkeep
+wiki/raw/**
+!wiki/raw/.gitkeep
+!wiki/raw/**/.gitkeep
 
 # Wiki: don't commit your generated index
 wiki/_index.json

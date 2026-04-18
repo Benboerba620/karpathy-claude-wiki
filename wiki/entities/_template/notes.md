@@ -1,17 +1,17 @@
 ---
-title: <Entity name> — Notes
+title: <实体名称> - Notes
 type: notes
 related: [[<entity-name>/profile]]
 updated: YYYY-MM-DD
 ---
 
-# <Entity name> — Notes
+# <实体名称> - Notes
 
-> Dated research notes. Append-only. Newest at top.
+> 按日期追加的研究笔记。最新的放最上面。
 
 ## YYYY-MM-DD
 
-(Note content. Be specific. Reference [[sources/...]] when applicable.)
+（记录具体观察。适用时引用 `[[sources/...]]`。）
 
 ---
 

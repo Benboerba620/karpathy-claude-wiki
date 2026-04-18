@@ -25,17 +25,17 @@ OpenAI 兼容 LLM，返回结构化 JSON，再由 agent 快速生成 `sources/` 
 --------
 
     # CLI —— 读一个 PDF，把 JSON 摘要打到 stdout
-    python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
+    python scripts/ingest_helper.py --pdf wiki/raw/my-report.pdf
 
     # CLI —— 明确指定 provider
     python scripts/ingest_helper.py --pdf my.pdf --provider glm
 
     # CLI —— 读普通 md / txt 文件
-    python scripts/ingest_helper.py --text wiki/raw/articles/my-article.md
+    python scripts/ingest_helper.py --text wiki/raw/my-article.md
 
     # Python API —— AI agent 直接调
     from scripts.ingest_helper import summarize_file
-    data = summarize_file("wiki/raw/articles/my-report.pdf", provider="kimi")
+    data = summarize_file("wiki/raw/my-report.pdf", provider="kimi")
     # data 是 dict，包含 title / date / tldr / key_data / quotes / ...
 
 依赖

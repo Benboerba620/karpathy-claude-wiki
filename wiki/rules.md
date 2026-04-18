@@ -1,58 +1,56 @@
 ---
-title: Validated Rules
+title: 已验证规则
 type: meta
-updated: 2026-04-07
+updated: 2026-04-18
 ---
 
-# Rules
+# Rules / 规则
 
-> Patterns confirmed by repeated evidence. The LLM checks this file during research and flags conflicts.
+> 这里记录被重复证据验证过的模式。LLM 做研究时会检查本文件，并主动提示冲突。
 
 ## Rule Lifecycle
 
-Rules have a clear promotion and demotion path:
-
-```
-observation → pattern (seen 2x) → RULE (confirmed 3x+) → under review → retired/updated
+```text
+observation -> pattern (seen 2x) -> RULE (confirmed 3x+) -> under review -> retired/updated
 ```
 
-- **Promotion**: A pattern confirmed 3+ times across different entities/sources → the LLM proposes adding it here as a new rule. User confirms before adding.
-- **Under Review**: New evidence contradicts an active rule → move it to "Rules Under Review" with the contradicting evidence. Discuss in next weekly review.
-- **Retirement**: Rule is proven wrong or no longer applies → move to "Retired Rules" with the reason. Never delete — failed rules teach as much as successful ones.
-- **Update**: Rule is still valid but needs refinement → update in place, bump confirmation count, note the refinement in the Promotion Log.
+- **Promotion / 提升**：某个模式在不同实体/来源中被确认 3 次以上后，LLM 可以建议把它提升为正式规则，需用户确认。
+- **Under Review / 复核中**：新证据与现行规则冲突时，把它移到 “Rules Under Review”。
+- **Retirement / 退役**：规则被证明错误或已不再适用时，移动到 “Retired Rules”，不要删除。
+- **Update / 更新**：规则仍然成立，但需要修正表述或边界时，原地更新并记录到 Promotion Log。
 
 ## Active Rules
 
 | # | Rule | Source | Confirmation count | First confirmed | Last confirmed |
-|---|------|--------|--------------------|-----------------|-----------------|
-| R1 | _Example: When demand spikes, the bottleneck is rarely the obvious component — check supply chains two layers upstream._ | (your hypothesis ID) | 0 | YYYY-MM-DD | YYYY-MM-DD |
+|---|---|---|---|---|---|
+| R1 | _示例：当需求突然爆发时，真正的瓶颈往往不在最显眼的那个零部件，而在上游两层供应链。_ | (你的假设 ID) | 0 | YYYY-MM-DD | YYYY-MM-DD |
 
-> Delete the example row above and add your own. Format: short rule, then source, then confirmation count.
+> 删掉上面的示例行，换成你自己的规则。格式尽量简短、可检索、可验证。
 
 ## Domain Playbooks
 
-> Optional: longer-form playbooks that go beyond a one-line rule. Use this section for "how I handle X" recipes you've validated multiple times. Playbooks should emerge from multiple rules and real experience, not be written speculatively.
+> 可选。这里放经过多次验证后形成的长一点的方法论，比如“我如何处理 X 类问题”。不要预设式编写，要从真实经验中长出来。
 
 (empty)
 
 ## Rules Under Review
 
-> Rules whose validity is being questioned by new evidence. Discuss in your weekly review.
-> Format: `R{N} — <contradicting evidence> — <date flagged> — <source>`
+> 被新证据挑战中的规则，留待周复盘时处理。
+> 格式：`R{N} - <contradicting evidence> - <date flagged> - <source>`
 
 (none)
 
 ## Retired Rules
 
-> Rules that turned out to be wrong or no longer apply. Keep them here as a record so you can learn from failure.
-> Format: `R{N} — <original rule> — <why retired> — <date retired>`
+> 已被证伪或不再适用的规则。保留它们，是为了从失败里学习。
+> 格式：`R{N} - <original rule> - <why retired> - <date retired>`
 
 (none)
 
 ## Promotion Log
 
-> Track every rule lifecycle event: promotion, review, retirement, update.
+> 记录规则生命周期中的每一次事件：提升、复核、退役、更新。
 
 | Date | Rule # | Action | Trigger |
-|------|--------|--------|---------|
-| YYYY-MM-DD | — | template init | initialized empty |
+|---|---|---|---|
+| YYYY-MM-DD | - | template init | initialized empty |

@@ -1,9 +1,11 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$TargetDir,
 
     [string]$WikiDirName = 'wiki',
+
+    [string]$Language = 'zh-CN',
 
     [string]$EntityName = '',
 
@@ -16,6 +18,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+function Normalize-Language {
+    param([string]$Value)
+
+    switch -Regex ($Value.Trim().ToLowerInvariant()) {
+        '^(zh|zh-cn|zh-hans|cn)$' { return 'zh-CN' }
+        '^(en|en-us|en-gb)$' { return 'en' }
+        default { throw "Unsupported language '$Value'. Use zh-CN or en." }
+    }
+}
 
 function Write-Step {
     param([string]$Message)
@@ -80,33 +92,108 @@ function Get-ProtocolBody {
     return $match.Value.Trim()
 }
 
+function Get-LocaleOverridePath {
+    param(
+        [string]$RepoRoot,
+        [string]$Language,
+        [string]$RelativePath
+    )
+
+    if ($Language -eq 'zh-CN') {
+        return (Join-Path $RepoRoot $RelativePath)
+    }
+
+    $overridePath = Join-Path $RepoRoot (Join-Path (Join-Path 'locales' $Language) $RelativePath)
+    if (Test-Path $overridePath) {
+        return $overridePath
+    }
+
+    return (Join-Path $RepoRoot $RelativePath)
+}
+
+function Apply-WikiLocaleOverrides {
+    param(
+        [string]$RepoRoot,
+        [string]$Language,
+        [string]$TargetWiki
+    )
+
+    if ($Language -eq 'zh-CN') {
+        return
+    }
+
+    $localeWikiRoot = Join-Path $RepoRoot (Join-Path (Join-Path 'locales' $Language) 'wiki')
+    if (-not (Test-Path $localeWikiRoot)) {
+        throw "Locale wiki overrides were not found for language '$Language'."
+    }
+
+    Get-ChildItem $localeWikiRoot -Force | ForEach-Object {
+        Copy-Item $_.FullName $TargetWiki -Recurse -Force
+    }
+
+    Write-Step "Applied wiki locale overrides: $Language"
+}
+
+function Get-LocaleSettings {
+    param(
+        [string]$Language,
+        [string]$WikiDirName
+    )
+
+    $schemaPath = "$WikiDirName/_schema.md"
+    $protocolsPath = "$WikiDirName/_protocols.md"
+
+    return [pscustomobject]@{
+        ProtocolTitle = 'Wiki Protocols'
+        ProtocolHeading = '# Wiki Protocols'
+        ProtocolIntro = "> Installed from karpathy-claude-wiki. Read this together with $schemaPath whenever working with the wiki."
+        LightweightHeader = '## Wiki Protocols (karpathy-claude-wiki)'
+        LightweightLines = @(
+            "When working with $WikiDirName/, first read:",
+            "- $schemaPath",
+            "- $protocolsPath",
+            '',
+            'Use those files for ingest, cross-reference, contradiction scan, crystallization, and periodic wiki maintenance.',
+            'If the wiki protocol conflicts with project-specific instructions above, surface the conflict and ask the user which rule should win.'
+        )
+        CompletionTitle = 'Installation complete. Next steps:'
+        CompletionSteps = @(
+            "1. Drop a source file into $WikiDirName\raw\",
+            '2. Open Claude Code',
+            "3. Tell it: read '$schemaPath', '$protocolsPath', and 'CLAUDE.md', then ingest the file I just dropped following the protocol.",
+            "4. Optional: if you use Obsidian Clippings, ask the agent to scan it with 'python skills/wiki-ingest/scripts/scan_pending_sources.py --include-obsidian-clippings' first."
+        )
+    }
+}
+
 function Write-ProtocolFile {
     param(
         [string]$TemplatePath,
         [string]$WikiRoot,
-        [string]$WikiDirName
+        [string]$WikiDirName,
+        [string]$Language
     )
 
     $template = Get-Content -Raw -Encoding UTF8 $TemplatePath
     $body = Get-ProtocolBody -TemplateText $template
     $protocolPath = Join-Path $WikiRoot '_protocols.md'
     $today = Get-Date -Format 'yyyy-MM-dd'
-    $schemaPath = "$WikiDirName/_schema.md"
+    $settings = Get-LocaleSettings -Language $Language -WikiDirName $WikiDirName
 
-    $content = @"
----
-title: Wiki Protocols
-type: meta
-created: $today
-updated: $today
----
-
-# Wiki Protocols
-
-> Installed from karpathy-claude-wiki. Read this together with $schemaPath whenever working with the wiki.
-
-$body
-"@
+    $content = @(
+        '---',
+        "title: $($settings.ProtocolTitle)",
+        'type: meta',
+        "created: $today",
+        "updated: $today",
+        '---',
+        '',
+        $settings.ProtocolHeading,
+        '',
+        $settings.ProtocolIntro,
+        '',
+        $body
+    ) -join "`r`n"
 
     Write-Utf8File -Path $protocolPath -Content ($content.Trim() + "`r`n")
     Write-Step "Wrote wiki protocol file: $protocolPath"
@@ -116,8 +203,11 @@ function Merge-ClaudeMd {
     param(
         [string]$TemplatePath,
         [string]$TargetPath,
-        [string]$WikiDirName
+        [string]$WikiDirName,
+        [string]$Language
     )
+
+    $settings = Get-LocaleSettings -Language $Language -WikiDirName $WikiDirName
 
     if (-not (Test-Path $TargetPath)) {
         Copy-Item $TemplatePath $TargetPath -Force
@@ -126,26 +216,18 @@ function Merge-ClaudeMd {
     }
 
     $existing = Get-Content -Raw -Encoding UTF8 $TargetPath
-    $sectionHeader = '## Wiki Protocols (karpathy-claude-wiki)'
-    if ($existing.Contains($sectionHeader)) {
+    if ($existing.Contains($settings.LightweightHeader)) {
         Write-Step 'Target project already contains the lightweight wiki section; skipping append'
         return
     }
 
-    $schemaPath = "$WikiDirName/_schema.md"
-    $protocolsPath = "$WikiDirName/_protocols.md"
-    $lightweightSection = @"
-## Wiki Protocols (karpathy-claude-wiki)
+    $lightweightSection = @(
+        $settings.LightweightHeader,
+        '',
+        ($settings.LightweightLines -join "`r`n")
+    ) -join "`r`n"
 
-When working with $WikiDirName/, first read:
-- $schemaPath
-- $protocolsPath
-
-Use those files for ingest, cross-reference, contradiction scan, crystallization, and periodic wiki maintenance.
-If the wiki protocol conflicts with project-specific instructions above, surface the conflict and ask the user which rule should win.
-"@
-
-    $merged = $existing.TrimEnd() + "`r`n`r`n" + $lightweightSection.Trim() + "`r`n"
+    $merged = $existing.TrimEnd() + "`r`n`r`n" + $lightweightSection + "`r`n"
     Write-Utf8File -Path $TargetPath -Content $merged
     Write-Step 'Appended lightweight wiki integration to existing CLAUDE.md'
 }
@@ -200,39 +282,23 @@ function Normalize-CopiedWiki {
     }
 
     $rawRoot = Join-Path $WikiRoot 'raw'
-    $expectedRawDirs = @('articles', 'books', 'papers', 'podcasts', 'conversations')
     if (-not (Test-Path $rawRoot)) {
         return
     }
 
     Get-ChildItem $rawRoot -Force | ForEach-Object {
-        if ($_.PSIsContainer -and $expectedRawDirs -contains $_.Name) {
-            Get-ChildItem $_.FullName -Force | Where-Object { $_.Name -ne '.gitkeep' } | Remove-Item -Recurse -Force
-            $gitkeepPath = Join-Path $_.FullName '.gitkeep'
-            if (-not (Test-Path $gitkeepPath)) {
-                New-Item -ItemType File -Path $gitkeepPath -Force | Out-Null
-            }
-        }
-        else {
-            Remove-Item $_.FullName -Recurse -Force
-        }
+        Remove-Item $_.FullName -Recurse -Force
     }
 
-    foreach ($dirName in $expectedRawDirs) {
-        $dirPath = Join-Path $rawRoot $dirName
-        if (-not (Test-Path $dirPath)) {
-            New-Item -ItemType Directory -Path $dirPath -Force | Out-Null
-        }
-
-        $gitkeepPath = Join-Path $dirPath '.gitkeep'
-        if (-not (Test-Path $gitkeepPath)) {
-            New-Item -ItemType File -Path $gitkeepPath -Force | Out-Null
-        }
+    $gitkeepPath = Join-Path $rawRoot '.gitkeep'
+    if (-not (Test-Path $gitkeepPath)) {
+        New-Item -ItemType File -Path $gitkeepPath -Force | Out-Null
     }
 
     Write-Step 'Removed generated files and non-template raw materials from copied wiki/'
 }
 
+$Language = Normalize-Language -Value $Language
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $resolvedTargetDir = [System.IO.Path]::GetFullPath($TargetDir)
 $resolvedRepoRoot = [System.IO.Path]::GetFullPath($repoRoot)
@@ -246,14 +312,17 @@ if (-not (Test-Path $resolvedTargetDir)) {
 }
 
 $sourceWiki = Join-Path $repoRoot 'wiki'
-$sourceClaude = Join-Path $repoRoot 'CLAUDE.md'
+$sourceClaude = Get-LocaleOverridePath -RepoRoot $repoRoot -Language $Language -RelativePath 'CLAUDE.md'
 $sourceIndexScript = Join-Path $repoRoot 'scripts\wiki_index.py'
 $sourceIngestHelper = Join-Path $repoRoot 'scripts\ingest_helper.py'
+$sourceIngestSkillDir = Join-Path $repoRoot 'skills\wiki-ingest'
 $sourceEnvExample = Join-Path $repoRoot '.env.example'
 $targetWiki = Join-Path $resolvedTargetDir $WikiDirName
 $targetScriptsDir = Join-Path $resolvedTargetDir 'scripts'
+$targetSkillsDir = Join-Path $resolvedTargetDir 'skills'
 $targetIndexScript = Join-Path $targetScriptsDir 'wiki_index.py'
 $targetIngestHelper = Join-Path $targetScriptsDir 'ingest_helper.py'
+$targetIngestSkillDir = Join-Path $targetSkillsDir 'wiki-ingest'
 $targetClaude = Join-Path $resolvedTargetDir 'CLAUDE.md'
 $targetEnvExample = Join-Path $resolvedTargetDir '.env.example'
 
@@ -270,13 +339,26 @@ if (Test-Path $targetWiki) {
 
 Write-Step "Copying wiki template to $targetWiki"
 Copy-Item $sourceWiki $targetWiki -Recurse -Force
+Apply-WikiLocaleOverrides -RepoRoot $repoRoot -Language $Language -TargetWiki $targetWiki
 Normalize-CopiedWiki -WikiRoot $targetWiki
 
 if (-not (Test-Path $targetScriptsDir)) {
     New-Item -ItemType Directory -Path $targetScriptsDir -Force | Out-Null
 }
+
 Copy-Item $sourceIndexScript $targetIndexScript -Force
 Write-Step 'Copied scripts/wiki_index.py'
+
+if (Test-Path $sourceIngestSkillDir) {
+    if (-not (Test-Path $targetSkillsDir)) {
+        New-Item -ItemType Directory -Path $targetSkillsDir -Force | Out-Null
+    }
+    if (Test-Path $targetIngestSkillDir) {
+        Remove-Item $targetIngestSkillDir -Recurse -Force
+    }
+    Copy-Item $sourceIngestSkillDir $targetIngestSkillDir -Recurse -Force
+    Write-Step 'Copied skills/wiki-ingest'
+}
 
 if ($WithIngestHelper) {
     if (-not (Test-Path $sourceIngestHelper)) { throw 'Template scripts/ingest_helper.py was not found' }
@@ -287,8 +369,8 @@ if ($WithIngestHelper) {
     Write-Step 'Copied scripts/ingest_helper.py and .env.example'
 }
 
-Write-ProtocolFile -TemplatePath $sourceClaude -WikiRoot $targetWiki -WikiDirName $WikiDirName
-Merge-ClaudeMd -TemplatePath $sourceClaude -TargetPath $targetClaude -WikiDirName $WikiDirName
+Write-ProtocolFile -TemplatePath $sourceClaude -WikiRoot $targetWiki -WikiDirName $WikiDirName -Language $Language
+Merge-ClaudeMd -TemplatePath $sourceClaude -TargetPath $targetClaude -WikiDirName $WikiDirName -Language $Language
 New-FirstEntity -WikiRoot $targetWiki -Name $EntityName
 
 if (-not $SkipIndex) {
@@ -324,10 +406,7 @@ if (-not $SkipIndex) {
     }
 }
 
-$schemaPath = "$WikiDirName/_schema.md"
-$protocolsPath = "$WikiDirName/_protocols.md"
+$completion = Get-LocaleSettings -Language $Language -WikiDirName $WikiDirName
 Write-Host ''
-Write-Host 'Installation complete. Next steps:' -ForegroundColor Green
-Write-Host "1. Drop source files into $WikiDirName\raw\articles or papers and other raw folders" -ForegroundColor Green
-Write-Host '2. Open Claude Code' -ForegroundColor Green
-Write-Host "3. Tell it: read '$schemaPath', '$protocolsPath', and 'CLAUDE.md', then ingest the file I just dropped following the protocol." -ForegroundColor Green
+Write-Host $completion.CompletionTitle -ForegroundColor Green
+$completion.CompletionSteps | ForEach-Object { Write-Host $_ -ForegroundColor Green }

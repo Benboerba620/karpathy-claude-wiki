@@ -126,7 +126,7 @@ pip install requests pypdf
 
 ```bash
 # 读 PDF，结构化 JSON 打到 stdout
-python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
+python scripts/ingest_helper.py --pdf wiki/raw/my-report.pdf
 
 # 显式指定 provider
 python scripts/ingest_helper.py --pdf my.pdf --provider glm
@@ -137,7 +137,7 @@ python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
 
 JSON 输出包含 `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned`——正好对齐 ingest 协议里 `sources/<日期>-<slug>.md` 的字段。
 
-> 📝 **提示**：用 AI agent 安装路径的用户，只要在**阶段 2 克隆**时**额外**告诉 agent 把 `scripts/ingest_helper.py` 和 `.env.example` 也复制到项目，就能一起装好。agent 会自动处理。
+> 📝 **提示**：用 AI agent 安装路径的用户，只要在**阶段 2 克隆**时**额外**告诉 agent 把 `scripts/ingest_helper.py`、`.env.example` 和 `skills/wiki-ingest/` 也复制到项目，就能一起装好。agent 会自动处理。`wiki/raw/` 现在默认就是平铺 inbox；如果你用 Obsidian Clippings，也可以让 agent 先扫描它。
 
 ---
 
@@ -214,17 +214,17 @@ Copy-Item .\CLAUDE.md ..\my-project\CLAUDE.md
 
 ```bash
 # 🍎 macOS / Linux
-cp ~/Downloads/some-research-paper.md wiki/raw/papers/
+cp ~/Downloads/some-research-paper.md wiki/raw/
 ```
 
 ```powershell
 # 🪟 Windows PowerShell
-Copy-Item "$HOME\Downloads\some-research-paper.md" .\wiki\raw\papers\
+Copy-Item "$HOME\Downloads\some-research-paper.md" .\wiki\raw\
 ```
 
 ### 4. 打开 Claude Code，对它说
 
-> 读一下 `wiki/_schema.md` 和 `CLAUDE.md`，然后按 ingest 协议把 `wiki/raw/papers/some-research-paper.md` 摄入到 wiki 里。
+> 读一下 `wiki/_schema.md` 和 `CLAUDE.md`，然后按 ingest 协议把 `wiki/raw/some-research-paper.md` 摄入到 wiki 里。如果你用 Obsidian Clippings，也可以先让 agent 扫描。
 
 Claude 会：创建 `wiki/sources/<日期>-<slug>.md` 写结构化总结、识别实体/概念并创建或更新页面、用 `[[wikilinks]]` 加交叉引用、追加一行到 `_log.md`。
 
@@ -283,6 +283,7 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 
 - `2026-04-17`: README restructured — "Let Claude Code / an AI agent install it" is now the top-recommended path; local scripts and manual install collapsed under "Advanced"
 - `2026-04-17`: Added `scripts/ingest_helper.py` + `.env.example`: optional external-LLM helper for large ingests, supporting 5 OpenAI-compatible providers — Kimi / Zhipu GLM / DeepSeek / Alibaba Qwen / OpenAI (the first four have free tiers in mainland China)
+- `2026-04-18`: Generated wiki now defaults to Simplified Chinese, with an optional English locale via `--language en` or an explicit English-template request
 - `2026-04-12`: Added `explorations/_template.md` and `decisions/_template.md` with hypothesis branches, alternatives, action triggers, and Lessons → Rules feedback loop
 - `2026-04-12`: `rules.md` now has a Rule Lifecycle (`observation → pattern → RULE → under review → retired`) with Promotion Log tracking all lifecycle events
 - `2026-04-12`: `inbox-digest.md` upgraded to weekly grouping with 60-day rolling archive to `inbox-archive.md`
@@ -336,6 +337,8 @@ It will ask you 4 questions (one at a time):
 3. **Do you already have a `CLAUDE.md` at your project root?**
 4. **What's one example entity you want to start tracking?** (a stock ticker, book title, person's name, project codename)
 
+By default the generated wiki is in Simplified Chinese. If you explicitly want an English template, tell the agent that directly.
+
 Once you've answered, the agent clones the template, customizes for your domain (if not the default `investing`), writes `wiki/_protocols.md`, lightly integrates or copies `CLAUDE.md`, scaffolds the entity you named, generates the index, and cleans up. **No further commands from you.**
 
 ### Beginner FAQ
@@ -382,7 +385,7 @@ pip install requests pypdf
 
 ```bash
 # Read a PDF, print structured JSON to stdout
-python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
+python scripts/ingest_helper.py --pdf wiki/raw/my-report.pdf
 
 # Explicitly pick a provider
 python scripts/ingest_helper.py --pdf my.pdf --provider glm
@@ -393,7 +396,7 @@ python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
 
 The JSON output contains `title / date / tldr / key_data / quotes / implications / verifiable_predictions / open_questions / entities_mentioned / concepts_mentioned` — mapping cleanly onto the `sources/<date>-<slug>.md` page fields.
 
-> 📝 **Tip**: if you're going via the AI-agent install path above, during Phase 2 just tell the agent to **also** copy `scripts/ingest_helper.py` and `.env.example` into your project. If you're using the local installers below instead, add `-WithIngestHelper` (PowerShell) or `--with-ingest-helper` (bash).
+> 📝 **Tip**: if you're going via the AI-agent install path above, during Phase 2 just tell the agent to **also** copy `scripts/ingest_helper.py`, `.env.example`, and `skills/wiki-ingest/` into your project. If you're using the local installers below instead, the installer now copies `skills/wiki-ingest/` by default. `wiki/raw/` is now a flat inbox by default, and Obsidian Clippings can be scanned optionally.
 
 ---
 
@@ -412,13 +415,16 @@ cd karpathy-claude-wiki
 # 2. One-shot install into a target directory (replace with your own path and entity name)
 powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
 
+# Optional: generate an English wiki instead of the default Simplified Chinese one
+powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL" -Language en
+
 # Optional: also copy scripts/ingest_helper.py + .env.example for large ingests
 powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL" -WithIngestHelper
 ```
 
 No git? Use **Code → Download ZIP** on GitHub, unzip, `cd` in.
 
-The script: copies `wiki/`, strips local generated files / raw materials from the template copy, copies `scripts/wiki_index.py`, optionally copies `scripts/ingest_helper.py` + `.env.example`, handles `CLAUDE.md` (if one exists, adds only a lightweight entry + writes the full protocol to `wiki/_protocols.md`), scaffolds your first trackable entity, and generates the index + runs lint when Python is available.
+The script: copies `wiki/`, strips local generated files / raw materials from the template copy, copies `scripts/wiki_index.py`, copies `skills/wiki-ingest/`, optionally copies `scripts/ingest_helper.py` + `.env.example`, handles `CLAUDE.md` (if one exists, adds only a lightweight entry + writes the full protocol to `wiki/_protocols.md`), scaffolds your first trackable entity, and generates the index + runs lint when Python is available. The installed wiki defaults to Simplified Chinese; pass `-Language en` for English.
 
 ### 🍎 macOS / Linux bash one-shot install
 
@@ -430,6 +436,9 @@ cd karpathy-claude-wiki
 # 2. One-shot install
 bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
 
+# Optional: generate an English wiki instead of the default Simplified Chinese one
+bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL --language en
+
 # Optional: also copy scripts/ingest_helper.py + .env.example for large ingests
 bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL --with-ingest-helper
 ```
@@ -437,13 +446,14 @@ bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL --with
 Flags:
 - `--target-dir` — your project directory (auto-created if missing)
 - `--entity-name` — first entity to scaffold (a ticker / book / person)
+- `--language` — `zh-CN` (default) or `en`
 - `--force` — overwrite an existing wiki at the target
 - `--skip-index` — skip the final index + lint step
 - `--with-ingest-helper` — also copy `scripts/ingest_helper.py` and `.env.example`
 
 ### After installation, open Claude Code and say:
 
-> Read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol.
+> Read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md`, then ingest the file I dropped in `wiki/raw/` following the ingest protocol. If I use Obsidian Clippings, scan that optional inbox first.
 
 </details>
 

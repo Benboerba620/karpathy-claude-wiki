@@ -7,49 +7,49 @@ tags: [example, template]
 judgment: watching
 related: [[EXAMPLE-concept]]
 created: 2026-04-07
-updated: 2026-04-07
+updated: 2026-04-18
 confidence: low
 ---
 
 # EXAMPLE Inc.
 
-> This is an example entity page so you can see how a real entry looks. **Delete this entire `EXAMPLE/` directory after your first real entity is created.**
+> 这是一个示例实体页，用来展示真实实体页面的大致样子。**当你创建第一个真实 entity 后，请删除整个 `EXAMPLE/` 目录。**
 
-## Basics
+## 基本信息
 
-| Field | Value |
+| 字段 | 内容 |
 |---|---|
-| Type | Public company (illustrative) |
-| Started tracking | 2026-04-07 |
-| Current judgment | Watching |
-| Related hypotheses | (your hypotheses go here) |
+| 类型 | Public company（示例） |
+| 开始跟踪 | 2026-04-07 |
+| 当前判断 | Watching |
+| 相关假设 | （把你的假设写在这里） |
 
-## Why it's interesting
+## 为什么值得跟踪
 
-This is a placeholder entity used to illustrate the entity profile structure. Replace with a real one once you understand the layout.
+这是一个占位用实体，用于说明 entity profile 的结构。理解布局后，就可以用真实对象替换它。
 
-## Core thesis
+## 核心 thesis
 
-> A short, opinionated, falsifiable claim about why this entity matters.
+> 用一句短而明确、带观点、可被证伪的话说明为什么它重要。
 
-The "long form" goes under here, 2-3 paragraphs. What must be true for the thesis to hold. What would prove it wrong. What you'd need to see to change your mind.
+长版说明放在这里，通常 2-3 段：thesis 成立需要什么、什么证据会推翻它、什么信息会让你改变判断。
 
-## Key variables to track
+## 关键跟踪变量
 
-- Variable 1 — what makes it move, how to measure it
-- Variable 2 — same
-- Variable 3 — same
+- 变量 1 - 它为什么会动、如何衡量
+- 变量 2 - 同上
+- 变量 3 - 同上
 
-## Network
+## 关联网络
 
-- Related entities: (none yet)
-- Related concepts: [[EXAMPLE-concept]]
-- Related sources: (none yet — add via ingest)
+- 相关实体：（none yet）
+- 相关概念：[[EXAMPLE-concept]]
+- 相关来源：（none yet - add via ingest）
 
-## Open questions
+## 开放问题
 
-- (Things you haven't answered yet — these become your research backlog.)
+- （还没回答的问题都会变成你的研究 backlog。）
 
 ---
 
-_Delete this example after creating your first real entity._
+_创建第一个真实 entity 后请删除此示例。_

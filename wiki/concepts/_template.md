@@ -1,5 +1,5 @@
 ---
-title: <Concept name>
+title: <概念名称>
 type: concept
 domain: [investing]
 related: []
@@ -8,46 +8,46 @@ updated: YYYY-MM-DD
 confidence: low
 ---
 
-# <Concept name>
+# <概念名称>
 
-## What it is
+## 这是什么
 
-(One paragraph definition. If the concept is technical, include a non-technical analogy.)
+（用一段话定义这个概念。如果偏技术，尽量补一个非技术类比。）
 
-## Why it matters
+## 为什么重要
 
-(One paragraph: why you care, how it connects to your decisions or research.)
+（用一段话说明：为什么你关心它，它如何影响你的研究或决策。）
 
-## Synthesis
+## Synthesis / 综述
 
 > Compiled from N sources, last updated YYYY-MM-DD.
 
-(3-5 sentences of your current best understanding, noting any disagreements between sources.)
+（用 3-5 句话写出当前最佳理解，并标出不同来源之间的分歧。）
 
-**Key data points**:
+**Key data points / 关键数据**：
 
 | Metric | Latest value | Source | Date |
-|--------|--------------|--------|------|
+|---|---|---|---|
 
-**Sources cited**:
+**Sources cited / 引用来源**：
 
-- [[sources/source1]] — relevance
-- [[sources/source2]] — relevance
+- [[sources/source1]] - relevance
+- [[sources/source2]] - relevance
 
-## Related entities
+## 相关实体
 
-- [[entity1]] — relationship
-- [[entity2]] — relationship
+- [[entity1]] - relationship
+- [[entity2]] - relationship
 
-## Related concepts
+## 相关概念
 
-- [[concept1]] — relationship
-- [[concept2]] — relationship
+- [[concept1]] - relationship
+- [[concept2]] - relationship
 
-## Open questions
+## 开放问题
 
-- (Questions you haven't answered yet)
+- （你还没有回答的问题）
 
 ---
 
-*Re-compile this synthesis after 3+ new sources cite this concept.*
+*当新增 3 个以上来源引用这个概念后，重编译此综述。*

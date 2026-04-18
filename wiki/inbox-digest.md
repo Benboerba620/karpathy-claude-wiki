@@ -1,24 +1,24 @@
 ---
-title: Inbox Digest
+title: 收件箱摘要
 type: meta
-updated: 2026-04-07
+updated: 2026-04-18
 ---
 
-# Inbox Digest
+# Inbox Digest / 收件箱摘要
 
-> Recent ingests, grouped by week, newest at top. Auto-populated by the ingest protocol. 60-day rolling window — older entries move to `inbox-archive.md`.
+> 最近摄入的来源，按周分组，最新在最上方。由 ingest 协议自动维护。保留约 60 天滚动窗口，更早内容移到 `inbox-archive.md`。
 >
-> **Purpose**: Quick "what did I feed the wiki recently?" reference. Each entry is one line linking to the source-summary page, with the entity/concept it affected most.
+> **用途**：快速回答“我最近往 wiki 里喂了什么？”
 
 ## Week of YYYY-MM-DD (N items)
 
 | Source | Title | Filed under | One-line takeaway |
-|--------|-------|-------------|-------------------|
-| (empty — run your first ingest) | | | |
+|---|---|---|---|
+| (empty - run your first ingest) | | | |
 
 <!--
 ## Week of YYYY-MM-DD (N items)
 
-Copy the table header above to start a new week.
-When this file exceeds ~60 days of entries, move older weeks to inbox-archive.md.
+复制上面的表头，开始新的一周。
+当本文件超过约 60 天内容时，把更早的整周区块移动到 inbox-archive.md。
 -->

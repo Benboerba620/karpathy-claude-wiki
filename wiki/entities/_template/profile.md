@@ -13,37 +13,37 @@ confidence: low
 
 # <Entity name>
 
-## Basics
+## 基本信息
 
-| Field | Value |
+| 字段 | 内容 |
 |---|---|
-| Type | (company / person / book / project) |
-| Started tracking | YYYY-MM-DD |
-| Current judgment | watching / bullish / bearish / neutral |
-| Related hypotheses | H1, H2 |
+| 类型 | （company / person / book / project） |
+| 开始跟踪 | YYYY-MM-DD |
+| 当前判断 | watching / bullish / bearish / neutral |
+| 相关假设 | H1, H2 |
 
-## Why it's interesting
+## 为什么值得跟踪
 
-(One paragraph: what made you start tracking this. Be specific. Future-you will thank you.)
+（一段话：是什么让你开始关注它。尽量具体。）
 
-## Core thesis
+## 核心 thesis
 
-> One-sentence thesis. The kind of thing you'd put on a poster.
+> 用一句话写出你的核心判断，最好带一点立场，也要可证伪。
 
-**Long form**: 2-3 paragraphs explaining the thesis. What has to be true for this thesis to hold. What would refute it.
+**展开说明**：用 2-3 段说明 thesis 成立需要什么前提，哪些证据会推翻它。
 
-## Key variables to track
+## 关键跟踪变量
 
-- Variable 1 — why it matters, how to measure
-- Variable 2 — why it matters, how to measure
-- Variable 3 — why it matters, how to measure
+- 变量 1：为什么重要，如何衡量
+- 变量 2：为什么重要，如何衡量
+- 变量 3：为什么重要，如何衡量
 
-## Network
+## 关联网络
 
-- Related entities: [[entity1]], [[entity2]]
-- Related concepts: [[concept1]], [[concept2]]
-- Related sources: [[sources/source1]], [[sources/source2]]
+- 相关实体：[[实体1]], [[实体2]]
+- 相关概念：[[概念1]], [[概念2]]
+- 相关来源：[[sources/source1]], [[sources/source2]]
 
-## Open questions
+## 开放问题
 
-- (questions you haven't answered yet)
+- （你还没有回答的问题）

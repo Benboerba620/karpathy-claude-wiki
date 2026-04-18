@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wiki Ingest"
+  short_description: "Ingest wiki sources and scan Clippings"
+  default_prompt: "Ingest pending source files into the wiki, optionally scanning Obsidian Clippings first."

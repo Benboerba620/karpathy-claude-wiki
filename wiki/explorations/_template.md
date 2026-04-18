@@ -13,47 +13,47 @@ confidence: low | medium | high
 
 # <topic or question>
 
-> **Status**: <one-line current status — what has been explored, what remains>
+> **Status / 当前状态**：<一句话概括已经探索了什么、还剩什么>
 
-## Trigger
+## Trigger / 触发点
 
-What prompted this exploration? Link to the source or conversation that raised the question.
+是什么触发了这次 exploration？请链接到提出问题的来源或对话。
 
-## Core Hypotheses
+## Core Hypotheses / 核心假设
 
-Break the question into testable branches:
+把问题拆成可以检验的分支：
 
 ### A. <hypothesis name>
 
 - <reasoning>
-- **Test method**: <how to verify or falsify>
+- **Test method / 验证方法**：<how to verify or falsify>
 
 ### B. <hypothesis name>
 
 - <reasoning>
-- **Test method**: <how to verify or falsify>
+- **Test method / 验证方法**：<how to verify or falsify>
 
-## Key Uncertainties
+## Key Uncertainties / 核心不确定性
 
-1. <what you don't know that matters most>
+1. <what you do not know that matters most>
 2. <second uncertainty>
 
-## Data Gaps
+## Data Gaps / 数据缺口
 
-- [ ] <specific data or research needed to resolve uncertainty 1>
-- [ ] <specific data or research needed to resolve uncertainty 2>
+- [ ] <specific data needed to resolve uncertainty 1>
+- [ ] <specific data needed to resolve uncertainty 2>
 
-## Action Nodes
+## Action Nodes / 行动节点
 
 | Trigger condition | Action | Timeline |
 |---|---|---|
 | <if X happens> | <then do Y> | <by when> |
 
-## Sources Cited
+## Sources Cited / 引用来源
 
-- [[source1]] — relevance
-- [[source2]] — relevance
+- [[source1]] - relevance
+- [[source2]] - relevance
 
-## Open Questions
+## Open Questions / 开放问题
 
-- <sub-questions this raised but didn't answer>
+- <sub-questions this raised but did not answer>

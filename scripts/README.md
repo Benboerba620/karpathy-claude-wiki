@@ -1,124 +1,114 @@
 # Scripts
 
-Helper scripts for maintaining the wiki. Currently:
+维护这套 wiki 的辅助脚本说明。
+
 ## `install_wiki.ps1`
 
-A beginner-friendly Windows PowerShell installer for Chinese / non-technical users.
+面向 Windows PowerShell 的一键安装器，适合新手用户。
 
-It can:
-- copy `wiki/` into a target project
-- strip generated files / raw-material leftovers from the copied template
-- copy `scripts/wiki_index.py`
-- optionally copy `scripts/ingest_helper.py` + `.env.example`
-- copy `CLAUDE.md` or add a lightweight entry when one already exists
-- write `wiki/_protocols.md` and scaffold the first entity page
-- generate `_index.json` + `overview.md`
-- run `--lint`
+它会：
+
+- 复制 `wiki/`
+- 清理模板中的生成文件和残留 raw 材料
+- 复制 `scripts/wiki_index.py`
+- 复制 `skills/wiki-ingest/`
+- 可选复制 `scripts/ingest_helper.py` 和 `.env.example`
+- 复制 `CLAUDE.md`，或在已有 `CLAUDE.md` 中追加轻量入口
+- 写入 `wiki/_protocols.md`
+- 创建第一个 entity 页面
+- 生成 `_index.json` 与 `overview.md`
+- 运行 `--lint`
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "D:\my-project" -EntityName "AAPL"
 ```
 
-Use `-Force` if the target `wiki/` already exists and you explicitly want to overwrite it.
-Use `-WithIngestHelper` if you also want `scripts/ingest_helper.py` and `.env.example`.
-On Windows, the installer ignores the Microsoft Store `python.exe` alias and only runs index/lint when a real Python 3 interpreter is available.
+常用参数：
+
+- `-Language zh-CN|en`：生成的 wiki 语言，默认 `zh-CN`
+- `-Force`：目标目录已有 wiki 时强制覆盖
+- `-WithIngestHelper`：额外复制 `scripts/ingest_helper.py` 和 `.env.example`
+
+默认安装出的 wiki 使用平铺的 `wiki/raw/` inbox。
+
+## `install_wiki.sh`
+
+面向 macOS / Linux 的对应安装器，行为与 PowerShell 版本尽量保持一致。
+
+```bash
+bash scripts/install_wiki.sh --target-dir ~/my-project --entity-name AAPL
+```
+
+常用参数：
+
+- `--language zh-CN|en`
+- `--force`
+- `--skip-index`
+- `--with-ingest-helper`
 
 ## `wiki_index.py`
 
-A combined index generator, search tool, and lint checker.
+索引生成、检索和 lint 检查三合一脚本。
 
 ```bash
-# Default: regenerate _index.json + overview.md
+# 默认：重建 _index.json + overview.md
 python scripts/wiki_index.py
 
-# Search by keyword across all pages
+# 关键词搜索
 python scripts/wiki_index.py --search "concept name"
 
-# Run health check (broken links, orphans, stale pages, missing frontmatter)
+# 结构健康检查
 python scripts/wiki_index.py --lint
 
-# Quick stats by type and domain
+# 统计信息
 python scripts/wiki_index.py --stats
 
-# Generate attention / link-graph report
+# 生成 attention / link-graph 报告
 python scripts/wiki_index.py --report
 ```
 
-`--report` generates a structural attention summary and writes `wiki/_attention.md`.
-It highlights:
-- god nodes (most-linked pages)
-- top-5 attention concentration
-- hub sources with high fan-out
-- lonely recent pages with zero inbound links
-- concepts ranked by source-reference count
+`--report` 会写出 `wiki/_attention.md`，突出显示：
 
-This is a minimal version (~200 lines). The original it was distilled from is ~700 lines and has domain-specific extensions for larger wiki structures. Customize freely.
+- 高链接节点
+- top-5 注意力集中度
+- 扇出较高的 hub sources
+- 零入链的新页面
+- 被引用来源最多的 concepts
 
-## `ingest_helper.py`（可选 —— 大文件 ingest 外接 LLM 助手）
+## `ingest_helper.py`（可选）
 
-把 PDF / 长文本压缩这一步外包给一个便宜的 OpenAI 兼容 LLM，省主对话 context。只在 ingest 大研报、长播客、几百页的书时才需要；短文章让主 agent 直接读即可，不要装这个。
+把 PDF / 长文本压缩成结构化 JSON，交给较便宜的 OpenAI 兼容 LLM 处理，节省主对话上下文。
 
-支持的 provider（任选一家，前四家在国内有免费额度）：
+适用场景：
 
-- **Kimi / 月之暗面**（`https://platform.moonshot.cn/`）—— 长文本友好
-- **智谱 GLM**（`https://bigmodel.cn/`）—— `glm-4-flash` 免费
-- **DeepSeek**（`https://platform.deepseek.com/`）—— 送免费 credits
-- **通义 Qwen**（`https://dashscope.console.aliyun.com/`）—— 阿里 DashScope
-- **OpenAI**（或任何 OpenAI 兼容端点）
+- 长研报
+- 长播客转录
+- 几百页书稿或大文档
 
-三步配好：
+短文章、笔记、对话通常不需要这一层。
 
 ```bash
-# 1. 复制 .env 模板
 cp .env.example .env
-# 2. 编辑 .env，在其中一家 provider 下取消注释并填 key
-# 3. 装依赖
 pip install requests pypdf
-```
 
-用法：
-
-```bash
-# 读 PDF，JSON 打 stdout
-python scripts/ingest_helper.py --pdf wiki/raw/articles/my-report.pdf
-
-# 显式指定 provider
+python scripts/ingest_helper.py --pdf wiki/raw/my-report.pdf
 python scripts/ingest_helper.py --pdf my.pdf --provider glm
-
-# 读 md / txt
-python scripts/ingest_helper.py --text wiki/raw/articles/notes.md
-
-# 写 JSON 到文件
+python scripts/ingest_helper.py --text wiki/raw/notes.md
 python scripts/ingest_helper.py --pdf my.pdf --out /tmp/summary.json
 ```
 
-JSON 字段：`title / date / author / tldr / key_data / quotes / implications / entities_mentioned / concepts_mentioned / verifiable_predictions / open_questions` —— 正好对齐 ingest 协议里 `sources/<日期>-<slug>.md` 的字段结构。
-
-也可以作为 Python API 被 AI agent 直接调用：
+也可以作为 Python API：
 
 ```python
 from scripts.ingest_helper import summarize_file
-data = summarize_file("wiki/raw/articles/my-report.pdf", provider="kimi")
+data = summarize_file("wiki/raw/my-report.pdf", provider="kimi")
 ```
 
-**边界**：
-- ✅ 适合：结构化压缩已知文档（研报、文章、播客稿）
-- ❌ 不适合：跨多个文档的综合判断、投资决策依赖的精确数字归属（主 agent 亲自读）
-- 国产 LLM 在数字密集 / infographic 提取上偶有硬幻觉，关键财务数据出 JSON 后主 agent 建议再核一遍原文
+## 后续可能补的脚本
 
-## What you might add later
+1. `fix_broken_links.py`
+2. `split_sources.py`
+3. `promote_rules.py`
+4. `verify_predictions.py`
 
-Common additions, in order of usefulness:
-
-1. **`fix_broken_links.py`** — auto-repair common wikilink format issues (display text vs path)
-2. **`split_sources.py`** — split a long accumulated source file into individual `sources/*.md` pages
-3. **`promote_rules.py`** — scan entity pages for repeated confirmation patterns, suggest rule promotions
-4. **`verify_predictions.py`** — for predictions whose target date has passed, ask the LLM to verify and update
-
-None of these are essential. Build them when the pain shows up.
-
-## Dependencies
-
-The minimal script uses only the Python standard library. No `pip install` required.
-
-If you want fancier YAML parsing (multi-line values, nested dicts), add `pyyaml` and replace `parse_frontmatter()`.
+这些都不是必需品，等真实痛点出现再加。

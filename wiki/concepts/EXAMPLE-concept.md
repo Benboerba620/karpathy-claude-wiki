@@ -4,40 +4,40 @@ type: concept
 domain: [investing]
 related: [[EXAMPLE]]
 created: 2026-04-07
-updated: 2026-04-07
+updated: 2026-04-18
 confidence: low
 ---
 
 # EXAMPLE Concept
 
-> This is an example concept page so you can see how a real entry looks. **Delete this file after your first real concept is created.**
+> 这是一个示例 concept 页面，用来帮助你理解真实条目的样子。**创建第一个真实 concept 后请删除它。**
 
-## What it is
+## 这是什么
 
-A placeholder concept demonstrating the concept page structure. Concepts are themes, frameworks, or ideas that connect multiple entities — they're how you do "horizontal" thinking across your wiki.
+这是一个占位概念，用来展示 concept 页面结构。concept 是连接多个实体的主题、框架或思考方式，是你在 wiki 里进行“横向思考”的地方。
 
-## Why it matters
+## 为什么重要
 
-Concepts are where insight compounds. An entity is a thing; a concept is a *way of thinking* about many things. The LLM can use concepts to do cross-entity reasoning ("which of my tracked entities are exposed to this trend?").
+洞见会在 concept 页面里复利。entity 是一个对象，concept 是一种看待多个对象的方式。LLM 可以用 concept 做跨实体推理，例如“我跟踪的哪些对象暴露在这个趋势之下？”
 
-## Synthesis
+## Synthesis / 综述
 
-> Compiled from 0 sources. (You'll fill this in after ingesting sources that cite this concept.)
+> Compiled from 0 sources.（等你摄入真实来源后再填写。）
 
-A 3-5 sentence summary of your current best understanding of this concept will live here. The LLM regenerates this section periodically as new sources accumulate.
+这里会放你对该概念当前最佳理解的 3-5 句总结。随着新来源积累，LLM 会定期重写这部分。
 
-## Related entities
+## 相关实体
 
-- [[EXAMPLE]] — illustrative
+- [[EXAMPLE]] - illustrative
 
-## Related concepts
+## 相关概念
 
 (none yet)
 
-## Open questions
+## 开放问题
 
-- What questions about this concept do you not have good answers to?
+- 关于这个概念，你还没有很好答案的问题是什么？
 
 ---
 
-*Delete this example after creating your first real concept.*
+*创建第一个真实 concept 后请删除此示例。*
