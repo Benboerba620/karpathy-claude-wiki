@@ -37,21 +37,21 @@ jobs:
         if: runner.os != 'Windows'
         shell: bash
         run: |
-          mkdir -p wiki/raw/articles
+          mkdir -p wiki/raw
           printf '{"generated":true}\n' > wiki/_index.json
           printf '# generated\n' > wiki/overview.md
           printf '# generated\n' > wiki/_attention.md
-          printf 'secret\n' > wiki/raw/articles/local-secret.md
+          printf 'secret\n' > wiki/raw/local-secret.md
 
       - name: Seed ignored local-only files
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path .\wiki\raw\articles -Force | Out-Null
+          New-Item -ItemType Directory -Path .\wiki\raw -Force | Out-Null
           Set-Content -Path .\wiki\_index.json -Value '{"generated":true}' -Encoding utf8
           Set-Content -Path .\wiki\overview.md -Value '# generated' -Encoding utf8
           Set-Content -Path .\wiki\_attention.md -Value '# generated' -Encoding utf8
-          Set-Content -Path .\wiki\raw\articles\local-secret.md -Value 'secret' -Encoding utf8
+          Set-Content -Path .\wiki\raw\local-secret.md -Value 'secret' -Encoding utf8
 
       - name: Smoke test bash installer
         if: runner.os != 'Windows'
@@ -65,11 +65,12 @@ jobs:
           test -f "$target/scripts/ingest_helper.py"
           test -f "$target/.env.example"
           test -f "$target/wiki/entities/AAPL/profile.md"
+          grep -q '## 基本信息' "$target/wiki/entities/AAPL/profile.md"
           test ! -e "$target/wiki/_index.json"
           test ! -e "$target/wiki/overview.md"
           test ! -e "$target/wiki/_attention.md"
-          test ! -e "$target/wiki/raw/articles/local-secret.md"
-          test -f "$target/wiki/raw/articles/.gitkeep"
+          test ! -e "$target/wiki/raw/local-secret.md"
+          test -f "$target/wiki/raw/.gitkeep"
 
       - name: Smoke test PowerShell installer
         if: runner.os == 'Windows'
@@ -87,7 +88,7 @@ jobs:
             (Join-Path $target 'scripts\ingest_helper.py'),
             (Join-Path $target '.env.example'),
             (Join-Path $target 'wiki\entities\AAPL\profile.md'),
-            (Join-Path $target 'wiki\raw\articles\.gitkeep')
+            (Join-Path $target 'wiki\raw\.gitkeep')
           )
 
           foreach ($path in $required) {
@@ -96,11 +97,16 @@ jobs:
             }
           }
 
+          $profileText = Get-Content (Join-Path $target 'wiki\entities\AAPL\profile.md') -Raw -Encoding utf8
+          if ($profileText -notmatch '## 基本信息') {
+            throw "Missing expected Chinese template heading in entity profile"
+          }
+
           $forbidden = @(
             (Join-Path $target 'wiki\_index.json'),
             (Join-Path $target 'wiki\overview.md'),
             (Join-Path $target 'wiki\_attention.md'),
-            (Join-Path $target 'wiki\raw\articles\local-secret.md')
+            (Join-Path $target 'wiki\raw\local-secret.md')
           )
 
           foreach ($path in $forbidden) {
