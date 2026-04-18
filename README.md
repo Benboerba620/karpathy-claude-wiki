@@ -12,7 +12,7 @@
 >
 > **状态**：空模板。你负责放资料、提问题；LLM 负责整理、交叉引用、回写和持续维护。
 
-**Last updated**：`2026-04-17`
+**Last updated**：`2026-04-18`
 
 **直接按你的情况选一条路：**
 
@@ -25,6 +25,7 @@
 
 ## 最近更新
 
+- `2026-04-18`：发布 `v0.2.0`——整个 wiki 默认输出中文，英文改为可选 locale；安装器、安装协议、模板、CI smoke test 全部对齐到这一行为
 - `2026-04-17`：README 结构重排——让 Claude Code / AI agent 帮你装成为首推路径，本地脚本和手动安装折叠为进阶选项
 - `2026-04-17`：新增 `scripts/ingest_helper.py` + `.env.example`：可选的大文件 ingest 外接 LLM 助手，支持 Kimi / 智谱 GLM / DeepSeek / 通义 Qwen / OpenAI 五家 OpenAI 兼容 provider（前四家在国内有免费额度）
 - `2026-04-12`：新增 `explorations/_template.md` 和 `decisions/_template.md`，包含假设分支、备选方案、行动触发条件、Lessons → Rules 闭环
@@ -269,7 +270,7 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 >
 > **Status**: Empty template. You decide what goes in; the LLM handles the bookkeeping.
 
-**Last updated**: `2026-04-17`
+**Last updated**: `2026-04-18`
 
 **Pick the path that matches you:**
 
@@ -281,6 +282,7 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 
 ## Recent Updates
 
+- `2026-04-18`: Released `v0.2.0` — the generated wiki now defaults to Simplified Chinese, with English kept as an optional locale; installers, install protocol, templates, and CI smoke tests are now aligned to that behavior
 - `2026-04-17`: README restructured — "Let Claude Code / an AI agent install it" is now the top-recommended path; local scripts and manual install collapsed under "Advanced"
 - `2026-04-17`: Added `scripts/ingest_helper.py` + `.env.example`: optional external-LLM helper for large ingests, supporting 5 OpenAI-compatible providers — Kimi / Zhipu GLM / DeepSeek / Alibaba Qwen / OpenAI (the first four have free tiers in mainland China)
 - `2026-04-18`: Generated wiki now defaults to Simplified Chinese, with an optional English locale via `--language en` or an explicit English-template request

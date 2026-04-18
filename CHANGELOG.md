@@ -2,6 +2,27 @@
 
 这里记录 `karpathy-claude-wiki` 的重要更新。
 
+## 2026-04-18 — v0.2.0
+
+### 默认中文，英文可选
+
+- 生成出的个人 wiki 现在默认使用简体中文
+- 新增 `locales/en/`，把英文模板收敛为显式可选 locale，而不是默认模板
+- AI 安装协议不再主动提问语言；默认中文，只有用户明确要求时才切换到英文模板
+- PowerShell / bash 安装器都支持显式英文参数，同时保持默认中文行为
+
+### 模板与协议同步
+
+- `CLAUDE.md`、`wiki/_schema.md`、`rules.md`、`false-beliefs.md`、`inbox-*` 和核心模板全部同步到中文默认输出
+- `wiki/entities/`、`concepts/`、`explorations/`、`decisions/`、`sources/` 的示例与模板一起更新
+- README 与 INSTALL-FOR-AI 同步说明“默认中文 + 英文可选 locale”的安装方式
+
+### 安装与验证
+
+- 保留并继续支持可选外接 LLM ingest helper：`scripts/ingest_helper.py` + `.env.example`
+- `.gitignore` 与安装器统一到 flat `wiki/raw/` inbox
+- GitHub Actions 的 installer smoke test 已更新，验证默认中文模板与新的 raw 目录行为
+
 ## 2026-04-17
 
 ### README 结构重排：AI agent 路径升为首推
