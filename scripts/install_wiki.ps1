@@ -160,7 +160,7 @@ function Get-LocaleSettings {
         CompletionSteps = @(
             "1. Drop a source file into $WikiDirName\raw\",
             '2. Open Claude Code',
-            "3. Tell it: read '$schemaPath', '$protocolsPath', and 'CLAUDE.md', then ingest the file I just dropped following the protocol.",
+            "3. In Claude Code, first ensure it has read '$schemaPath', '$protocolsPath', and 'CLAUDE.md', then run '/ingest' or '/ingest <path>'.",
             "4. Optional: if you use Obsidian Clippings, ask the agent to scan it with 'python skills/wiki-ingest/scripts/scan_pending_sources.py --include-obsidian-clippings' first."
         )
     }
@@ -313,22 +313,30 @@ if (-not (Test-Path $resolvedTargetDir)) {
 
 $sourceWiki = Join-Path $repoRoot 'wiki'
 $sourceClaude = Get-LocaleOverridePath -RepoRoot $repoRoot -Language $Language -RelativePath 'CLAUDE.md'
+$sourceIngestCommand = Get-LocaleOverridePath -RepoRoot $repoRoot -Language $Language -RelativePath '.claude\commands\ingest.md'
 $sourceIndexScript = Join-Path $repoRoot 'scripts\wiki_index.py'
+$sourceCliScript = Join-Path $repoRoot 'scripts\wiki_cli.py'
 $sourceIngestHelper = Join-Path $repoRoot 'scripts\ingest_helper.py'
 $sourceIngestSkillDir = Join-Path $repoRoot 'skills\wiki-ingest'
 $sourceEnvExample = Join-Path $repoRoot '.env.example'
 $targetWiki = Join-Path $resolvedTargetDir $WikiDirName
 $targetScriptsDir = Join-Path $resolvedTargetDir 'scripts'
 $targetSkillsDir = Join-Path $resolvedTargetDir 'skills'
+$targetClaudeDir = Join-Path $resolvedTargetDir '.claude'
+$targetCommandsDir = Join-Path $targetClaudeDir 'commands'
 $targetIndexScript = Join-Path $targetScriptsDir 'wiki_index.py'
+$targetCliScript = Join-Path $targetScriptsDir 'wiki_cli.py'
 $targetIngestHelper = Join-Path $targetScriptsDir 'ingest_helper.py'
 $targetIngestSkillDir = Join-Path $targetSkillsDir 'wiki-ingest'
+$targetIngestCommand = Join-Path $targetCommandsDir 'ingest.md'
 $targetClaude = Join-Path $resolvedTargetDir 'CLAUDE.md'
 $targetEnvExample = Join-Path $resolvedTargetDir '.env.example'
 
 if (-not (Test-Path $sourceWiki)) { throw 'Template wiki/ directory was not found' }
 if (-not (Test-Path $sourceClaude)) { throw 'Template CLAUDE.md was not found' }
+if (-not (Test-Path $sourceIngestCommand)) { throw 'Template .claude/commands/ingest.md was not found' }
 if (-not (Test-Path $sourceIndexScript)) { throw 'Template scripts/wiki_index.py was not found' }
+if (-not (Test-Path $sourceCliScript)) { throw 'Template scripts/wiki_cli.py was not found' }
 
 if (Test-Path $targetWiki) {
     if (-not $Force) {
@@ -345,9 +353,21 @@ Normalize-CopiedWiki -WikiRoot $targetWiki
 if (-not (Test-Path $targetScriptsDir)) {
     New-Item -ItemType Directory -Path $targetScriptsDir -Force | Out-Null
 }
+if (-not (Test-Path $targetCommandsDir)) {
+    New-Item -ItemType Directory -Path $targetCommandsDir -Force | Out-Null
+}
 
 Copy-Item $sourceIndexScript $targetIndexScript -Force
 Write-Step 'Copied scripts/wiki_index.py'
+Copy-Item $sourceCliScript $targetCliScript -Force
+Write-Step 'Copied scripts/wiki_cli.py'
+if (-not (Test-Path $targetIngestCommand)) {
+    Copy-Item $sourceIngestCommand $targetIngestCommand -Force
+    Write-Step 'Copied .claude/commands/ingest.md'
+}
+else {
+    Write-Warning "Skipped .claude/commands/ingest.md because the target project already has one at $targetIngestCommand"
+}
 
 if (Test-Path $sourceIngestSkillDir) {
     if (-not (Test-Path $targetSkillsDir)) {

@@ -10,7 +10,9 @@
 
 - 复制 `wiki/`
 - 清理模板中的生成文件和残留 raw 材料
+- 复制 `.claude/commands/ingest.md`（如果目标项目还没有同名命令）
 - 复制 `scripts/wiki_index.py`
+- 复制 `scripts/wiki_cli.py`
 - 复制 `skills/wiki-ingest/`
 - 可选复制 `scripts/ingest_helper.py` 和 `.env.example`
 - 复制 `CLAUDE.md`，或在已有 `CLAUDE.md` 中追加轻量入口
@@ -74,6 +76,43 @@ python scripts/wiki_index.py --report
 - 扇出较高的 hub sources
 - 零入链的新页面
 - 被引用来源最多的 concepts
+
+## `wiki_cli.py`
+
+命令式入口。适合想把 ingest 做成明确命令，而不是只靠 agent 对话触发的人。
+
+```bash
+# 最简单：把文件归档到 wiki/raw/，生成 sources 页面，并更新 _log / inbox-digest
+python scripts/wiki_cli.py ingest path/to/source.md
+
+# 如果先用大文件 helper 压好了 JSON，可直接喂给 ingest
+python scripts/ingest_helper.py --pdf my.pdf --out /tmp/my.json
+python scripts/wiki_cli.py ingest my.pdf --summary-json /tmp/my.json
+
+# 扫描 flat raw inbox + 可选 Obsidian Clippings
+python scripts/wiki_cli.py scan --include-obsidian-clippings --json
+```
+
+`ingest` 默认会：
+
+- 必要时复制原文件到 `wiki/raw/`
+- 创建 `wiki/sources/YYYY-MM-DD-slug.md`
+- 更新 `wiki/_log.md`
+- 更新 `wiki/inbox-digest.md`
+- 尝试把已存在的 entity / concept 回链到这个 source
+- 运行 `python scripts/wiki_index.py` 和 `python scripts/wiki_index.py --lint`
+
+## `.claude/commands/ingest.md`
+
+Claude Code 的 slash command 入口。安装后可直接在 Claude Code 里用：
+
+```text
+/ingest
+/ingest wiki/raw/some-research-paper.md
+```
+
+它会先读 `wiki/_schema.md`、`wiki/_protocols.md` 和 `CLAUDE.md`，然后按协议执行 ingest。
+如果仓库里有 `scripts/wiki_cli.py`，命令会优先利用它处理归档、`sources/` 页面、`_log.md` 和 `inbox-digest.md` 这些样板流程。
 
 ## `ingest_helper.py`（可选）
 

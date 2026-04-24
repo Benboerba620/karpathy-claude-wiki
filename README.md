@@ -26,6 +26,8 @@
 ## 最近更新
 
 - `2026-04-18`：发布 `v0.2.0`——整个 wiki 默认输出中文，英文改为可选 locale；安装器、安装协议、模板、CI smoke test 全部对齐到这一行为
+- `2026-04-18`：新增 Claude Code 的 `.claude/commands/ingest.md`，现在可以直接用 `/ingest` 触发协议
+- `2026-04-18`：新增 `scripts/wiki_cli.py`：提供 `ingest` / `scan` 命令，支持命令式 ingest，而不只依赖 agent 对话触发
 - `2026-04-17`：README 结构重排——让 Claude Code / AI agent 帮你装成为首推路径，本地脚本和手动安装折叠为进阶选项
 - `2026-04-17`：新增 `scripts/ingest_helper.py` + `.env.example`：可选的大文件 ingest 外接 LLM 助手，支持 Kimi / 智谱 GLM / DeepSeek / 通义 Qwen / OpenAI 五家 OpenAI 兼容 provider（前四家在国内有免费额度）
 - `2026-04-12`：新增 `explorations/_template.md` 和 `decisions/_template.md`，包含假设分支、备选方案、行动触发条件、Lessons → Rules 闭环
@@ -142,6 +144,50 @@ JSON 输出包含 `title / date / tldr / key_data / quotes / implications / veri
 
 ---
 
+## ⌨️ 可选：命令式 ingest
+
+如果你不想每次都对 agent 说“ingest this”，现在也可以直接走命令：
+
+```bash
+# 最简单：归档原文件、生成 sources 页面、更新 _log / inbox-digest、跑 index + lint
+python scripts/wiki_cli.py ingest path/to/source.md
+
+# 大 PDF / 长文先用 helper 压成 JSON，再交给命令式 ingest
+python scripts/ingest_helper.py --pdf my.pdf --out /tmp/my.json
+python scripts/wiki_cli.py ingest my.pdf --summary-json /tmp/my.json
+
+# 扫描 wiki/raw/ 和可选 Obsidian Clippings
+python scripts/wiki_cli.py scan --include-obsidian-clippings --json
+```
+
+`wiki_cli.py ingest` 默认会做这几件事：
+
+- 必要时把原文件复制进 `wiki/raw/`
+- 创建 `wiki/sources/YYYY-MM-DD-slug.md`
+- 更新 `wiki/_log.md`
+- 更新 `wiki/inbox-digest.md`
+- 尝试回链已存在的 entity / concept 页面
+- 最后运行 `python scripts/wiki_index.py` 和 `python scripts/wiki_index.py --lint`
+
+如果你已经在项目里安装了可选的 `scripts/ingest_helper.py`，命令式 ingest 就能和大文件预处理无缝拼起来。
+
+---
+
+## `/ingest`：Claude Code 里的 slash command
+
+如果你用的是 Claude Code，现在仓库也自带了真正的 slash command：
+
+```text
+/ingest
+/ingest wiki/raw/some-research-paper.md
+```
+
+这个命令文件在 `.claude/commands/ingest.md`。它会先让 Claude 读取 `wiki/_schema.md`、`wiki/_protocols.md` 和 `CLAUDE.md`，然后按协议执行 ingest；如果仓库里有 `scripts/wiki_cli.py`，它也会优先利用脚本处理样板步骤。
+
+本地安装脚本会把这个命令一起复制到目标项目；如果目标项目已经有自己的 `.claude/commands/ingest.md`，安装器会跳过，避免覆盖你的现有命令。
+
+---
+
 <details>
 <summary><b>进阶：本地脚本安装 (Windows / macOS / Linux)</b></summary>
 
@@ -160,7 +206,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 
 不会用 git：在 GitHub 页面点 **Code → Download ZIP**，解压，`cd` 进去。
 
-脚本会：复制 `wiki/`、复制 `scripts/wiki_index.py`、处理 `CLAUDE.md`（已有则只追加轻量入口 + 把完整协议写入 `wiki/_protocols.md`）、创建第一个可跟踪 entity、在 Python 可用时生成索引并跑 lint。
+脚本会：复制 `wiki/`、复制 `.claude/commands/ingest.md`、复制 `scripts/wiki_index.py`、复制 `scripts/wiki_cli.py`、处理 `CLAUDE.md`（已有则只追加轻量入口 + 把完整协议写入 `wiki/_protocols.md`）、创建第一个可跟踪 entity、在 Python 可用时生成索引并跑 lint。
 
 ### 🍎 macOS / Linux bash 一键安装
 
@@ -283,6 +329,8 @@ MIT。Fork 它、改它、发布它。做出有意思的东西欢迎告诉作者
 ## Recent Updates
 
 - `2026-04-18`: Released `v0.2.0` — the generated wiki now defaults to Simplified Chinese, with English kept as an optional locale; installers, install protocol, templates, and CI smoke tests are now aligned to that behavior
+- `2026-04-18`: Added `.claude/commands/ingest.md`, so Claude Code can trigger the ingest workflow via `/ingest` or `/ingest <path>`
+- `2026-04-18`: Added `scripts/wiki_cli.py`: a command-based ingest entrypoint with `ingest` / `scan`, so the workflow no longer has to be purely agent-prompt driven
 - `2026-04-17`: README restructured — "Let Claude Code / an AI agent install it" is now the top-recommended path; local scripts and manual install collapsed under "Advanced"
 - `2026-04-17`: Added `scripts/ingest_helper.py` + `.env.example`: optional external-LLM helper for large ingests, supporting 5 OpenAI-compatible providers — Kimi / Zhipu GLM / DeepSeek / Alibaba Qwen / OpenAI (the first four have free tiers in mainland China)
 - `2026-04-18`: Generated wiki now defaults to Simplified Chinese, with an optional English locale via `--language en` or an explicit English-template request
@@ -402,6 +450,50 @@ The JSON output contains `title / date / tldr / key_data / quotes / implications
 
 ---
 
+## ⌨️ Optional: command-based ingest
+
+If you do not want ingest to rely purely on an agent prompt, the repo now ships a CLI entrypoint:
+
+```bash
+# Archive the raw file, generate a sources page, update _log / inbox-digest, then run index + lint
+python scripts/wiki_cli.py ingest path/to/source.md
+
+# Pair it with the optional helper for large PDFs / long docs
+python scripts/ingest_helper.py --pdf my.pdf --out /tmp/my.json
+python scripts/wiki_cli.py ingest my.pdf --summary-json /tmp/my.json
+
+# Scan wiki/raw/ and optional Obsidian Clippings
+python scripts/wiki_cli.py scan --include-obsidian-clippings --json
+```
+
+By default, `wiki_cli.py ingest` will:
+
+- copy the original file into `wiki/raw/` when needed
+- create `wiki/sources/YYYY-MM-DD-slug.md`
+- update `wiki/_log.md`
+- update `wiki/inbox-digest.md`
+- try to back-link existing entity / concept pages
+- run `python scripts/wiki_index.py` and `python scripts/wiki_index.py --lint`
+
+If you also installed `scripts/ingest_helper.py`, command-based ingest composes cleanly with the large-file helper workflow.
+
+---
+
+## `/ingest`: slash command for Claude Code
+
+If you are using Claude Code, the repo now also ships a real slash command:
+
+```text
+/ingest
+/ingest wiki/raw/some-research-paper.md
+```
+
+The command file lives at `.claude/commands/ingest.md`. It tells Claude to read `wiki/_schema.md`, `wiki/_protocols.md`, and `CLAUDE.md` first, then run the ingest workflow. If `scripts/wiki_cli.py` exists, the command can use it for the boilerplate parts of the ingest.
+
+The local installers copy this slash command into the target project as well. If the target project already has its own `.claude/commands/ingest.md`, the installer skips it instead of overwriting it silently.
+
+---
+
 <details>
 <summary><b>Advanced: local script install (Windows / macOS / Linux)</b></summary>
 
@@ -426,7 +518,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_wiki.ps1 -TargetDir "
 
 No git? Use **Code → Download ZIP** on GitHub, unzip, `cd` in.
 
-The script: copies `wiki/`, strips local generated files / raw materials from the template copy, copies `scripts/wiki_index.py`, copies `skills/wiki-ingest/`, optionally copies `scripts/ingest_helper.py` + `.env.example`, handles `CLAUDE.md` (if one exists, adds only a lightweight entry + writes the full protocol to `wiki/_protocols.md`), scaffolds your first trackable entity, and generates the index + runs lint when Python is available. The installed wiki defaults to Simplified Chinese; pass `-Language en` for English.
+The script: copies `wiki/`, strips local generated files / raw materials from the template copy, copies `.claude/commands/ingest.md`, copies `scripts/wiki_index.py`, copies `scripts/wiki_cli.py`, copies `skills/wiki-ingest/`, optionally copies `scripts/ingest_helper.py` + `.env.example`, handles `CLAUDE.md` (if one exists, adds only a lightweight entry + writes the full protocol to `wiki/_protocols.md`), scaffolds your first trackable entity, and generates the index + runs lint when Python is available. The installed wiki defaults to Simplified Chinese; pass `-Language en` for English.
 
 ### 🍎 macOS / Linux bash one-shot install
 

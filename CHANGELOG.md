@@ -2,7 +2,20 @@
 
 这里记录 `karpathy-claude-wiki` 的重要更新。
 
-## 2026-04-18 — v0.2.0
+## 2026-04-18 – v0.2.0
+
+### 新增命令式 ingest 入口
+
+- 新增 `scripts/wiki_cli.py`，提供 `ingest` 和 `scan` 两个子命令
+- `python scripts/wiki_cli.py ingest <file>` 现在可以直接执行命令式 ingest：归档到 `wiki/raw/`、生成 `wiki/sources/...md`、更新 `_log.md`、更新 `inbox-digest.md`，并尝试回链已存在的 entity / concept 页面
+- `python scripts/wiki_cli.py scan --include-obsidian-clippings` 作为现有扫描脚本的统一命令入口
+- 安装器与 AI 安装协议现在都会一并复制 `scripts/wiki_cli.py`
+
+### 新增 Claude Code `/ingest` slash command
+
+- 新增 `.claude/commands/ingest.md`
+- 现在在 Claude Code 里可以直接使用 `/ingest` 或 `/ingest <path>`
+- 安装器会把这个命令一起复制到目标项目；如果目标项目已经有同名命令，则跳过并给出提示，避免静默覆盖
 
 ### 默认中文，英文可选
 

@@ -85,22 +85,30 @@ localized_source_path() {
 
 source_wiki="$repo_root/wiki"
 source_claude="$(localized_source_path "CLAUDE.md")"
+source_ingest_command="$(localized_source_path ".claude/commands/ingest.md")"
 source_index_script="$repo_root/scripts/wiki_index.py"
+source_cli_script="$repo_root/scripts/wiki_cli.py"
 source_ingest_helper="$repo_root/scripts/ingest_helper.py"
 source_ingest_skill_dir="$repo_root/skills/wiki-ingest"
 source_env_example="$repo_root/.env.example"
 target_wiki="$target_dir_abs/$WIKI_DIR_NAME"
 target_scripts_dir="$target_dir_abs/scripts"
 target_skills_dir="$target_dir_abs/skills"
+target_claude_dir="$target_dir_abs/.claude"
+target_commands_dir="$target_claude_dir/commands"
 target_index_script="$target_scripts_dir/wiki_index.py"
+target_cli_script="$target_scripts_dir/wiki_cli.py"
 target_ingest_helper="$target_scripts_dir/ingest_helper.py"
 target_ingest_skill_dir="$target_skills_dir/wiki-ingest"
+target_ingest_command="$target_commands_dir/ingest.md"
 target_claude="$target_dir_abs/CLAUDE.md"
 target_env_example="$target_dir_abs/.env.example"
 
 [[ -d "$source_wiki" ]]         || die "Template wiki/ not found at $source_wiki"
 [[ -f "$source_claude" ]]       || die "Template CLAUDE.md not found at $source_claude"
+[[ -f "$source_ingest_command" ]] || die "Template .claude/commands/ingest.md not found at $source_ingest_command"
 [[ -f "$source_index_script" ]] || die "Template scripts/wiki_index.py not found"
+[[ -f "$source_cli_script" ]]   || die "Template scripts/wiki_cli.py not found"
 
 if [[ -d "$target_wiki" ]]; then
   if [[ $FORCE -eq 0 ]]; then
@@ -144,8 +152,17 @@ normalize_copied_wiki() {
 normalize_copied_wiki "$target_wiki"
 
 mkdir -p "$target_scripts_dir"
+mkdir -p "$target_commands_dir"
 cp "$source_index_script" "$target_index_script"
 print_step "Copied scripts/wiki_index.py"
+cp "$source_cli_script" "$target_cli_script"
+print_step "Copied scripts/wiki_cli.py"
+if [[ ! -f "$target_ingest_command" ]]; then
+  cp "$source_ingest_command" "$target_ingest_command"
+  print_step "Copied .claude/commands/ingest.md"
+else
+  print_warn "Skipped .claude/commands/ingest.md because the target project already has one at $target_ingest_command"
+fi
 
 if [[ -d "$source_ingest_skill_dir" ]]; then
   mkdir -p "$target_skills_dir"
@@ -351,7 +368,7 @@ if [[ "$LANGUAGE" == "en" ]]; then
   print_done "Installation complete. Next steps:"
   print_done "1. Drop a source file into $WIKI_DIR_NAME/raw/"
   print_done "2. Open Claude Code in $target_dir_abs"
-  print_done "3. Tell it: \"Read $WIKI_DIR_NAME/_schema.md, $WIKI_DIR_NAME/_protocols.md, and CLAUDE.md, then ingest the file I just dropped following the ingest protocol.\""
+  print_done "3. In Claude Code, make sure it has read $WIKI_DIR_NAME/_schema.md, $WIKI_DIR_NAME/_protocols.md, and CLAUDE.md, then run: /ingest or /ingest <path>"
   print_done "4. Optional: if you use Obsidian Clippings, ask the agent to scan it with: python skills/wiki-ingest/scripts/scan_pending_sources.py --include-obsidian-clippings"
 else
   print_done "安装完成，下一步："

@@ -25,7 +25,9 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 复制：
 
 - `.karpathy-tmp/wiki/` -> 用户选择的 wiki 路径
+- `.karpathy-tmp/.claude/commands/ingest.md` -> `./.claude/commands/ingest.md`（如果目标项目还没有同名命令）
 - `.karpathy-tmp/scripts/wiki_index.py` -> `./scripts/wiki_index.py`
+- `.karpathy-tmp/scripts/wiki_cli.py` -> `./scripts/wiki_cli.py`
 - `.karpathy-tmp/skills/wiki-ingest/` -> `./skills/wiki-ingest/`（如果项目保留 repo-local skills）
 
 默认生成简体中文 wiki。只有当用户**明确要求英文模板**时，才额外覆盖：
@@ -162,7 +164,9 @@ git clone https://github.com/Benboerba620/karpathy-claude-wiki.git .karpathy-tmp
 Copy:
 
 - `.karpathy-tmp/wiki/` -> the user's chosen wiki path
+- `.karpathy-tmp/.claude/commands/ingest.md` -> `./.claude/commands/ingest.md` if the target project does not already have the same command
 - `.karpathy-tmp/scripts/wiki_index.py` -> `./scripts/wiki_index.py`
+- `.karpathy-tmp/scripts/wiki_cli.py` -> `./scripts/wiki_cli.py`
 - `.karpathy-tmp/skills/wiki-ingest/` -> `./skills/wiki-ingest/` if the project keeps repo-local skills
 
 By default, generate a Simplified Chinese wiki. Only if the user explicitly asks for an English template, also overlay:
