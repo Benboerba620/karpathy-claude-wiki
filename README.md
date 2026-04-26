@@ -3,8 +3,21 @@
 [![Latest Release](https://img.shields.io/github/v/release/Benboerba620/karpathy-claude-wiki?display_name=tag)](https://github.com/Benboerba620/karpathy-claude-wiki/releases/latest)
 [![Wiki Lint](https://github.com/Benboerba620/karpathy-claude-wiki/actions/workflows/wiki-lint.yml/badge.svg)](https://github.com/Benboerba620/karpathy-claude-wiki/actions/workflows/wiki-lint.yml)
 
-> 🔗 **"零代码 AI 投研四件套" 之一** ｜ Part of the zero-code AI investment research toolkit
-> 知识库底座 karpathy-claude-wiki · [日常盯盘 daily-watchlist](https://github.com/Benboerba620/daily-watchlist) · [假设追踪 hypothesis-tracker](https://github.com/Benboerba620/hypothesis-tracker) · [播客侦听 pod2wiki](https://github.com/Benboerba620/pod2wiki)
+> 🧠 **30 秒看懂 / In 30 seconds**：一个个人 LLM 知识库模板，只用 markdown + frontmatter——刻意不用向量库、不用 RAG。LLM 帮你维护，你只负责策展。灵感来自 Karpathy 的推文。
+> A personal wiki template designed for LLMs to read and maintain. Pure markdown + frontmatter, deliberately no vector DB, no RAG. You curate, the LLM does the rest.
+
+> 🔗 **零代码 AI 投研四件套** ｜ Zero-code AI investment research toolkit
+> 🎙️ [pod2wiki](https://github.com/Benboerba620/pod2wiki) 输入 · **🧠 karpathy-claude-wiki 底座** · 📊 [daily-watchlist](https://github.com/Benboerba620/daily-watchlist) 日常 · 🎯 [hypothesis-tracker](https://github.com/Benboerba620/hypothesis-tracker) 决策
+
+```mermaid
+flowchart LR
+    P[🎙️ pod2wiki] -->|sources| W[🧠 karpathy-claude-wiki]
+    W -.->|read| D[📊 daily-watchlist]
+    W -.->|read| H[🎯 hypothesis-tracker]
+    D --> H
+    H -.->|evidence| W
+    style W fill:#bfdbfe,stroke:#1e40af
+```
 
 # 中文
 
