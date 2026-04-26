@@ -3,8 +3,8 @@
 [![Latest Release](https://img.shields.io/github/v/release/Benboerba620/karpathy-claude-wiki?display_name=tag)](https://github.com/Benboerba620/karpathy-claude-wiki/releases/latest)
 [![Wiki Lint](https://github.com/Benboerba620/karpathy-claude-wiki/actions/workflows/wiki-lint.yml/badge.svg)](https://github.com/Benboerba620/karpathy-claude-wiki/actions/workflows/wiki-lint.yml)
 
-> 🔗 **"零代码 AI 投研三件套" 之一** ｜ Part of the zero-code AI investment research toolkit
-> 知识库底座 karpathy-claude-wiki · [日常盯盘 daily-watchlist](https://github.com/Benboerba620/daily-watchlist) · [假设追踪 hypothesis-tracker](https://github.com/Benboerba620/hypothesis-tracker)
+> 🔗 **"零代码 AI 投研四件套" 之一** ｜ Part of the zero-code AI investment research toolkit
+> 知识库底座 karpathy-claude-wiki · [日常盯盘 daily-watchlist](https://github.com/Benboerba620/daily-watchlist) · [假设追踪 hypothesis-tracker](https://github.com/Benboerba620/hypothesis-tracker) · [播客侦听 pod2wiki](https://github.com/Benboerba620/pod2wiki)
 
 # 中文
 
