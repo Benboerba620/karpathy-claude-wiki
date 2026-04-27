@@ -6,16 +6,15 @@
 > 🧠 **30 秒看懂 / In 30 seconds**：一个个人 LLM 知识库模板，只用 markdown + frontmatter——刻意不用向量库、不用 RAG。LLM 帮你维护，你只负责策展。灵感来自 Karpathy 的推文。
 > A personal wiki template designed for LLMs to read and maintain. Pure markdown + frontmatter, deliberately no vector DB, no RAG. You curate, the LLM does the rest.
 
-> 🔗 **零代码 AI 投研四件套** ｜ Zero-code AI investment research toolkit
-> 🎙️ [pod2wiki](https://github.com/Benboerba620/pod2wiki) 输入 · **🧠 karpathy-claude-wiki 底座** · 📊 [daily-watchlist](https://github.com/Benboerba620/daily-watchlist) 日常 · 🎯 [hypothesis-tracker](https://github.com/Benboerba620/hypothesis-tracker) 决策
+> 🔗 **零代码 AI 投研三件套** ｜ Zero-code AI investment research toolkit
+> 🎙️ [pod2wiki](https://github.com/Benboerba620/pod2wiki) 输入 · **🧠 karpathy-claude-wiki 底座** · 📊 [daily-watchlist](https://github.com/Benboerba620/daily-watchlist) 日常 + 内置假设追踪
 
 ```mermaid
 flowchart LR
     P[🎙️ pod2wiki] -->|sources| W[🧠 karpathy-claude-wiki]
     W -.->|read| D[📊 daily-watchlist]
-    W -.->|read| H[🎯 hypothesis-tracker]
-    D --> H
-    H -.->|evidence| W
+    D -->|hypotheses & trades| DHT[🎯 built-in HT]
+    DHT -.->|evidence| W
     style W fill:#bfdbfe,stroke:#1e40af
 ```
 
