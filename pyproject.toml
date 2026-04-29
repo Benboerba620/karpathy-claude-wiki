@@ -1,0 +1,22 @@
+[project]
+name = "karpathy-claude-wiki"
+version = "0.2.0"
+description = "Markdown-first personal wiki template designed for LLM agents."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/Benboerba620/karpathy-claude-wiki"
+Issues = "https://github.com/Benboerba620/karpathy-claude-wiki/issues"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

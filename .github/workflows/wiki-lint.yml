@@ -28,7 +28,13 @@ jobs:
           python-version: "3.11"
 
       - name: Verify scripts compile
-        run: python -m py_compile scripts/wiki_index.py scripts/ingest_helper.py
+        run: python -m py_compile scripts/wiki_index.py scripts/ingest_helper.py scripts/preflight_public_repo.py
+
+      - name: Public repo preflight
+        run: python scripts/preflight_public_repo.py
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Run wiki lint
         run: python scripts/wiki_index.py --lint

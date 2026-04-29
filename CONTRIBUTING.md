@@ -11,8 +11,9 @@
   ```bash
   python scripts/wiki_index.py
   python scripts/wiki_index.py --report   # 可选，重新生成 wiki/_attention.md
+  python scripts/preflight_public_repo.py
   ```
-  CI 会在 `.github/workflows/wiki-lint.yml` 跑同一套 lint。
+  CI 会在 `.github/workflows/wiki-lint.yml` 跑同一套 lint 和公开前安全检查。`preflight_public_repo.py` 会拦截 API key、本机路径、同步盘冲突文件和 `wiki/raw/` 原始材料误提交。
 
 ## 测试安装脚本
 
